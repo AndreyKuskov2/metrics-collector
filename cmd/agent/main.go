@@ -1,12 +1,11 @@
 package main
 
 import (
-	// "fmt"
-
 	"fmt"
 	"time"
 
 	"github.com/AndreyKuskov2/metrics-collector/internal/agent/collector"
+	"github.com/AndreyKuskov2/metrics-collector/internal/agent/config"
 	"github.com/AndreyKuskov2/metrics-collector/internal/agent/sender"
 	"github.com/AndreyKuskov2/metrics-collector/internal/models"
 )
@@ -17,11 +16,10 @@ var (
 )
 
 func main() {
-	pollInterval := time.Duration(2) * time.Second
-	reportInterval := time.Duration(10) * time.Second
+	c := config.NewConfig()
 
-	tickerPoll := time.NewTicker(pollInterval)
-	tickerReport := time.NewTicker(reportInterval)
+	tickerPoll := time.NewTicker(time.Duration(c.PollInterval) * time.Second)
+	tickerReport := time.NewTicker(time.Duration(c.ReportInterval) * time.Second)
 
 	for {
 		select {
@@ -29,7 +27,7 @@ func main() {
 			pollCount++
 			metrics = collector.CollectMetrics(pollCount)
 		case <-tickerReport.C:
-			sender.SendMetrics(metrics)
+			sender.SendMetrics(c.Address, metrics)
 			fmt.Println("Sent metrics")
 		}
 	}

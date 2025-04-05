@@ -7,7 +7,8 @@ import (
 	"net/http"
 	"strconv"
 
-	"github.com/AndreyKuskov2/metrics-collector/internal/storage"
+	"github.com/AndreyKuskov2/metrics-collector/internal/server/config"
+	"github.com/AndreyKuskov2/metrics-collector/internal/server/storage"
 	"github.com/go-chi/chi"
 	"github.com/go-chi/chi/middleware"
 	"github.com/go-chi/render"
@@ -109,6 +110,8 @@ func GetMetricsHandler(s *storage.Storage) http.HandlerFunc {
 }
 
 func main() {
+	c := config.NewConfig()
+
 	s := storage.NewStorage()
 
 	r := chi.NewRouter()
@@ -119,8 +122,8 @@ func main() {
 	r.Get("/value/{metric_type}/{metric_name}", GetMetricHandler(s))
 	r.Get("/", GetMetricsHandler(s))
 
-	log.Println("Start web-server on port 8080")
-	if err := http.ListenAndServe(":8080", r); err != nil {
+	log.Printf("Start web-server on %s", c.Address)
+	if err := http.ListenAndServe(c.Address, r); err != nil {
 		log.Fatalf("Failed to start server: %v", err)
 	}
 }

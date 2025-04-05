@@ -7,9 +7,9 @@ import (
 	"github.com/levigross/grequests"
 )
 
-func SendMetrics(metrics map[string]models.Metric) error {
+func SendMetrics(address string, metrics map[string]models.Metric) error {
 	for metricName, metricData := range metrics {
-		url := fmt.Sprintf("http://localhost:8080/update/%s/%s/%v", metricData.Type, metricName, metricData.Value)
+		url := fmt.Sprintf("http://%s/update/%s/%s/%v", address, metricData.Type, metricName, metricData.Value)
 		ro := grequests.RequestOptions{
 			Headers: map[string]string{
 				"Content-Type": "text/plain",

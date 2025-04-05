@@ -10,5 +10,6 @@ require (
 	github.com/go-chi/render v1.0.3 // indirect
 	github.com/google/go-querystring v1.1.0 // indirect
 	github.com/levigross/grequests v0.0.0-20231203190023-9c307ef1f48d // indirect
+	github.com/spf13/pflag v1.0.6 // indirect
 	golang.org/x/net v0.38.0 // indirect
 )
