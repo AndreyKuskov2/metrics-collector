@@ -1,32 +1,37 @@
 package main
 
 import (
+	"fmt"
+	"html/template"
 	"log"
 	"net/http"
 	"strconv"
 
 	"github.com/AndreyKuskov2/metrics-collector/internal/storage"
+	"github.com/go-chi/chi"
+	"github.com/go-chi/chi/middleware"
+	"github.com/go-chi/render"
 )
 
 func UpdateMetricHandler(s *storage.Storage) http.HandlerFunc {
 	return func(w http.ResponseWriter, r *http.Request) {
 		if r.Method == http.MethodPost {
-			metricType := r.PathValue("metric_type")
+			metricType := chi.URLParam(r, "metric_type")
 			if metricType == "" || (metricType != "counter" && metricType != "gauge") {
-				w.WriteHeader(http.StatusBadRequest)
-				w.Header().Set("Content-type", "text/plain; charset=utf-8")
+				render.Status(r, http.StatusBadRequest)
+				render.PlainText(w, r, "")
 				return
 			}
-			metricName := r.PathValue("metric_name")
+			metricName := chi.URLParam(r, "metric_name")
 			if metricName == "" {
-				w.WriteHeader(http.StatusNotFound)
-				w.Header().Set("Content-type", "text/plain; charset=utf-8")
+				render.Status(r, http.StatusNotFound)
+				render.PlainText(w, r, "")
 				return
 			}
-			metricValue := r.PathValue("metric_value")
+			metricValue := chi.URLParam(r, "metric_value")
 			if metricValue == "" {
-				// TODO: Добавить обработку ошибок что ли
-				w.Header().Set("Content-type", "text/plain; charset=utf-8")
+				render.Status(r, http.StatusNotFound)
+				render.PlainText(w, r, "")
 				return
 			}
 
@@ -35,8 +40,8 @@ func UpdateMetricHandler(s *storage.Storage) http.HandlerFunc {
 			case "counter":
 				value, err := strconv.ParseInt(metricValue, 10, 64)
 				if err != nil {
-					w.WriteHeader(http.StatusBadRequest)
-					w.Header().Set("Content-type", "text/plain; charset=utf-8")
+					render.Status(r, http.StatusBadRequest)
+					render.PlainText(w, r, "")
 					return
 				}
 				oldMetric, ok := s.GetMetric(metricName)
@@ -48,31 +53,74 @@ func UpdateMetricHandler(s *storage.Storage) http.HandlerFunc {
 			case "gauge":
 				value, err := strconv.ParseFloat(metricValue, 64)
 				if err != nil {
-					w.WriteHeader(http.StatusBadRequest)
-					w.Header().Set("Content-type", "text/plain; charset=utf-8")
+					render.Status(r, http.StatusBadRequest)
+					render.PlainText(w, r, "")
 					return
 				}
 				s.UpdateMetric(metricType, metricName, value)
 			}
 
-			w.WriteHeader(http.StatusOK)
-			w.Header().Set("Content-type", "text/plain; charset=utf-8")
+			render.Status(r, http.StatusOK)
+			render.PlainText(w, r, "")
 		} else {
-			w.WriteHeader(http.StatusMethodNotAllowed)
-			w.Header().Set("Content-type", "text/plain; charset=utf-8")
+			render.Status(r, http.StatusMethodNotAllowed)
+			render.PlainText(w, r, "")
 		}
+	}
+}
+
+func GetMetricHandler(s *storage.Storage) http.HandlerFunc {
+	return func(w http.ResponseWriter, r *http.Request) {
+		metricName := chi.URLParam(r, "metric_name")
+		if metricName == "" {
+			render.Status(r, http.StatusNotFound)
+			render.PlainText(w, r, "")
+			return
+		}
+
+		metric, ok := s.GetMetric(metricName)
+		if !ok {
+			render.Status(r, http.StatusNotFound)
+			render.PlainText(w, r, "")
+			return
+		}
+
+		value := fmt.Sprintf("%v", metric.Value)
+		render.PlainText(w, r, value)
+	}
+}
+
+func GetMetricsHandler(s *storage.Storage) http.HandlerFunc {
+	return func(w http.ResponseWriter, r *http.Request) {
+		metrics, err := s.GetAllMetrics()
+		if err != nil {
+			render.Status(r, http.StatusNotFound)
+			render.PlainText(w, r, "")
+			return
+		}
+		tmpl, err := template.ParseFiles("./web/template/index.html")
+		if err != nil {
+			render.Status(r, http.StatusBadRequest)
+			render.PlainText(w, r, "")
+			return
+		}
+		tmpl.Execute(w, metrics)
 	}
 }
 
 func main() {
 	s := storage.NewStorage()
 
-	mux := http.NewServeMux()
+	r := chi.NewRouter()
 
-	mux.HandleFunc("/update/{metric_type}/{metric_name}/{metric_value}", UpdateMetricHandler(s))
+	r.Use(middleware.Logger)
+
+	r.Post("/update/{metric_type}/{metric_name}/{metric_value}", UpdateMetricHandler(s))
+	r.Get("/value/{metric_type}/{metric_name}", GetMetricHandler(s))
+	r.Get("/", GetMetricsHandler(s))
 
 	log.Println("Start web-server on port 8080")
-	if err := http.ListenAndServe(":8080", mux); err != nil {
+	if err := http.ListenAndServe(":8080", r); err != nil {
 		log.Fatalf("Failed to start server: %v", err)
 	}
 }

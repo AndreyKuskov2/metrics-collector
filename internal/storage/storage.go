@@ -7,6 +7,7 @@ import (
 type StorageRepo interface {
 	UpdateMetric(metricName string) error
 	GetMetric(metricName string) (*models.Metric, error)
+	GetAllMetrics() (map[string]*models.Metric, error)
 }
 
 type Storage struct {
@@ -17,6 +18,10 @@ func NewStorage() *Storage {
 	return &Storage{
 		MemStorage: make(map[string]*models.Metric),
 	}
+}
+
+func (s *Storage) GetAllMetrics() (map[string]*models.Metric, error) {
+	return s.MemStorage, nil
 }
 
 func (s *Storage) GetMetric(metricName string) (*models.Metric, bool) {
