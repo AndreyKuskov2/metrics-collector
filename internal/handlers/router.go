@@ -1,7 +1,6 @@
-package main
+package handlers
 
 import (
-	"log"
 	"net/http"
 	"strconv"
 
@@ -59,18 +58,5 @@ func UpdateMetricHandler(s *storage.Storage) http.HandlerFunc {
 			w.WriteHeader(http.StatusMethodNotAllowed)
 			w.Header().Set("Content-type", "text/plain; charset=utf-8")
 		}
-	}
-}
-
-func main() {
-	s := storage.NewStorage()
-
-	mux := http.NewServeMux()
-
-	mux.HandleFunc("/update/{metric_type}/{metric_name}/{metric_value}", UpdateMetricHandler(s))
-
-	log.Println("Start web-server on port 8080")
-	if err := http.ListenAndServe(":8080", mux); err != nil {
-		log.Fatalf("Failed to start server: %v", err)
 	}
 }
