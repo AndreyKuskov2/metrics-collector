@@ -1,3 +1,3 @@
 module github.com/AndreyKuskov2/metrics-collector
 
-go 1.22.12
+go 1.23
