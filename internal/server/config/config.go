@@ -2,6 +2,7 @@ package config
 
 import (
 	"log"
+	"os"
 	"strings"
 
 	"github.com/spf13/pflag"
@@ -28,6 +29,9 @@ func init() {
 }
 
 func NewConfig() *ServerConfig {
+	if envRunAddr := os.Getenv("ADDRESS"); envRunAddr != "" {
+		address = envRunAddr
+	}
 	return &ServerConfig{
 		Address: address,
 	}

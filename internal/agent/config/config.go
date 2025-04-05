@@ -2,6 +2,8 @@ package config
 
 import (
 	"log"
+	"os"
+	"strconv"
 	"strings"
 
 	"github.com/spf13/pflag"
@@ -21,10 +23,10 @@ func init() {
 	pflag.Parse()
 
 	for _, arg := range pflag.Args() {
-        if !strings.HasPrefix(arg, "-") {
-            log.Fatalf("Unknown flag: %v", arg)
-        }
-    }
+		if !strings.HasPrefix(arg, "-") {
+			log.Fatalf("Unknown flag: %v", arg)
+		}
+	}
 }
 
 type AgentConfig struct {
@@ -34,6 +36,23 @@ type AgentConfig struct {
 }
 
 func NewConfig() *AgentConfig {
+	var err error
+
+	if envRunAddr := os.Getenv("ADDRESS"); envRunAddr != "" {
+		address = envRunAddr
+	}
+	if envReportInterval := os.Getenv("REPORT_INTERVAL"); envReportInterval != "" {
+		reportInterval, err = strconv.Atoi(envReportInterval)
+		if err != nil {
+			log.Fatalf("failed to convert reportInterval value to type int")
+		}
+	}
+	if envPollInterval := os.Getenv("POLL_INTERVAL"); envPollInterval != "" {
+		pollInterval, err = strconv.Atoi(envPollInterval)
+		if err != nil {
+			log.Fatalf("failed to convert pollInterval value to type int")
+		}
+	}
 	return &AgentConfig{
 		Address:        address,
 		ReportInterval: reportInterval,
