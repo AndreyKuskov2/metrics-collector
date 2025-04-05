@@ -4,7 +4,7 @@ import (
 	"net/http"
 	"strconv"
 
-	"github.com/AndreyKuskov2/metrics-collector/internal/storage"
+	"github.com/AndreyKuskov2/metrics-collector/internal/server/storage"
 )
 
 func UpdateMetricHandler(s *storage.Storage) http.HandlerFunc {
