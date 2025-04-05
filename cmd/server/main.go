@@ -35,7 +35,8 @@ func UpdateMetricHandler(s *storage.Storage) http.HandlerFunc {
 			case "counter":
 				value, err := strconv.ParseInt(metricValue, 10, 64)
 				if err != nil {
-					// TODO: Добавить обработку, если не удалось распарсить значения
+					w.WriteHeader(http.StatusBadRequest)
+					w.Header().Set("Content-type", "text/plain; charset=utf-8")
 					return
 				}
 				oldMetric, ok := s.GetMetric(metricName)
@@ -47,7 +48,8 @@ func UpdateMetricHandler(s *storage.Storage) http.HandlerFunc {
 			case "gauge":
 				value, err := strconv.ParseFloat(metricValue, 64)
 				if err != nil {
-					// TODO: Добавить обработку, если не удалось распарсить значения
+					w.WriteHeader(http.StatusBadRequest)
+					w.Header().Set("Content-type", "text/plain; charset=utf-8")
 					return
 				}
 				s.UpdateMetric(metricType, metricName, value)
