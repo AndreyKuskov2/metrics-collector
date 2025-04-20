@@ -7,11 +7,12 @@ import (
 	"net/http"
 	"strconv"
 
+	"github.com/AndreyKuskov2/metrics-collector/internal/middlewares"
 	"github.com/AndreyKuskov2/metrics-collector/internal/server/config"
 	"github.com/AndreyKuskov2/metrics-collector/internal/server/storage"
 	"github.com/go-chi/chi"
-	"github.com/go-chi/chi/middleware"
 	"github.com/go-chi/render"
+	"github.com/sirupsen/logrus"
 )
 
 func UpdateMetricHandler(s *storage.Storage) http.HandlerFunc {
@@ -111,12 +112,13 @@ func GetMetricsHandler(s *storage.Storage) http.HandlerFunc {
 
 func main() {
 	c := config.NewConfig()
+	logger := logrus.New()
 
 	s := storage.NewStorage()
 
 	r := chi.NewRouter()
 
-	r.Use(middleware.Logger)
+	r.Use(middlewares.LoggerMiddleware(logger))
 
 	r.Post("/update/{metric_type}/{metric_name}/{metric_value}", UpdateMetricHandler(s))
 	r.Get("/value/{metric_type}/{metric_name}", GetMetricHandler(s))
