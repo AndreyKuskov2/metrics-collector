@@ -1,3 +1,34 @@
 package main
 
-func main() {}
+import (
+	"fmt"
+	"time"
+
+	"github.com/AndreyKuskov2/metrics-collector/internal/agent/collector"
+	"github.com/AndreyKuskov2/metrics-collector/internal/agent/config"
+	"github.com/AndreyKuskov2/metrics-collector/internal/agent/sender"
+	"github.com/AndreyKuskov2/metrics-collector/internal/models"
+)
+
+var (
+	pollCount int64
+	metrics   map[string]models.Metric
+)
+
+func main() {
+	c := config.NewConfig()
+
+	tickerPoll := time.NewTicker(time.Duration(c.PollInterval) * time.Second)
+	tickerReport := time.NewTicker(time.Duration(c.ReportInterval) * time.Second)
+
+	for {
+		select {
+		case <-tickerPoll.C:
+			pollCount++
+			metrics = collector.CollectMetrics(pollCount)
+		case <-tickerReport.C:
+			sender.SendMetrics(c.Address, metrics)
+			fmt.Println("Sent metrics")
+		}
+	}
+}
