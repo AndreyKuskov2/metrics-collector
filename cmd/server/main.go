@@ -166,8 +166,13 @@ func UpdateMetricHandlerJSON(s *storage.Storage) http.HandlerFunc {
 			render.PlainText(w, r, err.Error())
 			return
 		}
-		render.Status(r, http.StatusOK)
-		render.JSON(w, r, metric)
+		if responseMetric, ok := s.GetMetric(metric.ID); ok {
+			render.Status(r, http.StatusOK)
+			render.JSON(w, r, responseMetric)
+			return
+		}
+		render.Status(r, http.StatusNotFound)
+		render.PlainText(w, r, "")
 	}
 }
 
