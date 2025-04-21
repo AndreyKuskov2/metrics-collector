@@ -3,7 +3,6 @@ package main
 import (
 	"fmt"
 	"html/template"
-	"log"
 	"net/http"
 	"strconv"
 
@@ -163,6 +162,7 @@ func UpdateMetricHandlerJSON(s *storage.Storage) http.HandlerFunc {
 			}
 		}
 
+		fmt.Println(metric)
 		if err := s.UpdateMetric(metric); err != nil {
 			render.Status(r, http.StatusInternalServerError)
 			render.PlainText(w, r, err.Error())
@@ -182,7 +182,7 @@ func GetMetricHandlerJSON(s *storage.Storage) http.HandlerFunc {
 			render.PlainText(w, r, err.Error())
 			return
 		}
-		
+
 		if responseMetric, ok := s.GetMetric(metric.ID); ok {
 			render.Status(r, http.StatusOK)
 			render.JSON(w, r, responseMetric)
@@ -212,8 +212,8 @@ func main() {
 
 	r.Get("/", GetMetricsHandler(s))
 
-	log.Printf("Start web-server on %s", c.Address)
+	logger.Printf("Start web-server on %s", c.Address)
 	if err := http.ListenAndServe(c.Address, r); err != nil {
-		log.Fatalf("Failed to start server: %v", err)
+		logger.Fatalf("Failed to start server: %v", err)
 	}
 }

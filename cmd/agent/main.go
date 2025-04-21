@@ -1,13 +1,13 @@
 package main
 
 import (
-	"fmt"
 	"time"
 
 	"github.com/AndreyKuskov2/metrics-collector/internal/agent/collector"
 	"github.com/AndreyKuskov2/metrics-collector/internal/agent/config"
 	"github.com/AndreyKuskov2/metrics-collector/internal/agent/sender"
 	"github.com/AndreyKuskov2/metrics-collector/internal/models"
+	"github.com/sirupsen/logrus"
 )
 
 var (
@@ -17,6 +17,7 @@ var (
 
 func main() {
 	c := config.NewConfig()
+	logger := logrus.New()
 
 	tickerPoll := time.NewTicker(time.Duration(c.PollInterval) * time.Second)
 	tickerReport := time.NewTicker(time.Duration(c.ReportInterval) * time.Second)
@@ -29,7 +30,7 @@ func main() {
 		case <-tickerReport.C:
 			sender.SendMetrics(c.Address, metrics)
 			sender.SendMetricsJSON(c.Address, metrics)
-			fmt.Println("Sent metrics")
+			logger.Info("Sent metrics")
 		}
 	}
 }
