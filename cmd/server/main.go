@@ -117,7 +117,6 @@ func GetMetricsHandler(s *storage.Storage) http.HandlerFunc {
 		}
 		tmpl, err := template.ParseFiles("./web/template/index.html")
 		if err != nil {
-			fmt.Println(err.Error())
 			render.Status(r, http.StatusBadRequest)
 			render.PlainText(w, r, "")
 			return
@@ -162,7 +161,6 @@ func UpdateMetricHandlerJSON(s *storage.Storage) http.HandlerFunc {
 			}
 		}
 
-		fmt.Println(metric)
 		if err := s.UpdateMetric(metric); err != nil {
 			render.Status(r, http.StatusInternalServerError)
 			render.PlainText(w, r, err.Error())

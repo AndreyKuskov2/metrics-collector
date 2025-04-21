@@ -6,9 +6,10 @@ import (
 
 	"github.com/AndreyKuskov2/metrics-collector/internal/models"
 	"github.com/levigross/grequests"
+	"github.com/sirupsen/logrus"
 )
 
-func SendMetrics(address string, metrics map[string]models.Metrics) error {
+func SendMetrics(address string, metrics map[string]models.Metrics, logger *logrus.Logger) error {
 	for metricName, metricData := range metrics {
 		var url string
 		if metricData.Value == nil {
@@ -23,24 +24,24 @@ func SendMetrics(address string, metrics map[string]models.Metrics) error {
 		}
 		resp, err := grequests.Post(url, &ro)
 		if err != nil {
-			fmt.Printf("Failed to send metric %s: %v\n", metricName, err)
+			logger.Printf("Failed to send metric %s: %v\n", metricName, err)
 			continue
 		}
 
 		if resp.StatusCode != 200 {
-			fmt.Printf("Failed to send metric %s: status code %d\n", metricName, resp.StatusCode)
+			logger.Printf("Failed to send metric %s: status code %d\n", metricName, resp.StatusCode)
 		}
 	}
 	return nil
 }
 
-func SendMetricsJSON(address string, metrics map[string]models.Metrics) error {
+func SendMetricsJSON(address string, metrics map[string]models.Metrics, logger *logrus.Logger) error {
 	for metricName, metricData := range metrics {
 		url := fmt.Sprintf("http://%s/update", address)
 
 		jsonData, err := json.Marshal(metricData)
 		if err != nil {
-			fmt.Printf("Failed to marshal metric %s: %v\n", metricName, err)
+			logger.Printf("Failed to marshal metric %s: %v\n", metricName, err)
 			continue
 		}
 		ro := grequests.RequestOptions{
@@ -51,12 +52,12 @@ func SendMetricsJSON(address string, metrics map[string]models.Metrics) error {
 		}
 		resp, err := grequests.Post(url, &ro)
 		if err != nil {
-			fmt.Printf("Failed to send metric %s: %v\n", metricName, err)
+			logger.Printf("Failed to send metric %s: %v\n", metricName, err)
 			continue
 		}
 
 		if resp.StatusCode != 200 {
-			fmt.Printf("Failed to send metric %s: status code %d\n", metricName, resp.StatusCode)
+			logger.Printf("Failed to send metric %s: status code %d\n", metricName, resp.StatusCode)
 		}
 	}
 	return nil
