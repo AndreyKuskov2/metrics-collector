@@ -7,7 +7,7 @@ import (
 	"github.com/AndreyKuskov2/metrics-collector/internal/agent/config"
 	"github.com/AndreyKuskov2/metrics-collector/internal/agent/sender"
 	"github.com/AndreyKuskov2/metrics-collector/internal/models"
-	"github.com/sirupsen/logrus"
+	"github.com/AndreyKuskov2/metrics-collector/pkg/logger"
 )
 
 var (
@@ -17,7 +17,7 @@ var (
 
 func main() {
 	c := config.NewConfig()
-	logger := logrus.New()
+	logger := logger.NewLogger("./logs/agent.log")
 
 	tickerPoll := time.NewTicker(time.Duration(c.PollInterval) * time.Second)
 	tickerReport := time.NewTicker(time.Duration(c.ReportInterval) * time.Second)

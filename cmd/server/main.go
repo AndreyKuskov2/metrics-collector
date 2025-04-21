@@ -10,9 +10,9 @@ import (
 	"github.com/AndreyKuskov2/metrics-collector/internal/models"
 	"github.com/AndreyKuskov2/metrics-collector/internal/server/config"
 	"github.com/AndreyKuskov2/metrics-collector/internal/server/storage"
+	"github.com/AndreyKuskov2/metrics-collector/pkg/logger"
 	"github.com/go-chi/chi"
 	"github.com/go-chi/render"
-	"github.com/sirupsen/logrus"
 )
 
 func UpdateMetricHandler(s *storage.Storage) http.HandlerFunc {
@@ -194,7 +194,7 @@ func GetMetricHandlerJSON(s *storage.Storage) http.HandlerFunc {
 
 func main() {
 	c := config.NewConfig()
-	logger := logrus.New()
+	logger := logger.NewLogger("./logs/server.log")
 
 	s := storage.NewStorage()
 
