@@ -12,7 +12,7 @@ import (
 
 var (
 	pollCount int64
-	metrics   map[string]models.Metric
+	metrics   map[string]models.Metrics
 )
 
 func main() {
@@ -28,6 +28,7 @@ func main() {
 			metrics = collector.CollectMetrics(pollCount)
 		case <-tickerReport.C:
 			sender.SendMetrics(c.Address, metrics)
+			sender.SendMetricsJSON(c.Address, metrics)
 			fmt.Println("Sent metrics")
 		}
 	}

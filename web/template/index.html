@@ -14,7 +14,11 @@
         {{range $key, $metric := .}}
         <tr>
             <td>{{$key}}</td>
-            <td>{{$metric.Value}}</td>
+            {{if $metric.Value}}
+                <td>{{$metric.Value}}</td>
+            {{else}}
+                <td>{{$metric.Delta}}</td>
+            {{end}}
         </tr>
         {{end}}
     </table>
