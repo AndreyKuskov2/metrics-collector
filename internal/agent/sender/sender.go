@@ -39,6 +39,10 @@ func SendMetricsJSON(address string, metrics map[string]models.Metrics) error {
 		url := fmt.Sprintf("http://%s/update", address)
 
 		jsonData, err := json.Marshal(metricData)
+		if err != nil {
+			fmt.Printf("Failed to marshal metric %s: %v\n", metricName, err)
+			continue
+		}
 		ro := grequests.RequestOptions{
 			Headers: map[string]string{
 				"Content-Type": "application/json",
