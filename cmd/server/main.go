@@ -140,7 +140,7 @@ func UpdateMetricHandlerJSON(s *storage.Storage) http.HandlerFunc {
 		case "counter":
 			oldMetric, ok := s.GetMetric(requestMetric.ID)
 			if ok {
-				totalDelta := *oldMetric.Delta + *oldMetric.Delta
+				totalDelta := *oldMetric.Delta + *requestMetric.Delta
 				metric = &models.Metrics{
 					ID:    requestMetric.ID,
 					MType: requestMetric.MType,

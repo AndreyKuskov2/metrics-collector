@@ -25,3 +25,5 @@ vendor/
 .vscode
 
 test.go
+server.log
+agent.log
