@@ -1,6 +1,7 @@
 package sender
 
 import (
+	"encoding/json"
 	"fmt"
 
 	"github.com/AndreyKuskov2/metrics-collector/internal/models"
@@ -37,11 +38,12 @@ func SendMetricsJSON(address string, metrics map[string]models.Metrics) error {
 	for metricName, metricData := range metrics {
 		url := fmt.Sprintf("http://%s/update", address)
 
+		jsonData, err := json.Marshal(metricData)
 		ro := grequests.RequestOptions{
 			Headers: map[string]string{
 				"Content-Type": "application/json",
 			},
-			JSON: metricData,
+			JSON: jsonData,
 		}
 		resp, err := grequests.Post(url, &ro)
 		if err != nil {
