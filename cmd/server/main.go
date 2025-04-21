@@ -127,7 +127,7 @@ func GetMetricsHandler(s *storage.Storage) http.HandlerFunc {
 	}
 }
 
-func UpdateMetricHandlerJson(s *storage.Storage) http.HandlerFunc {
+func UpdateMetricHandlerJSON(s *storage.Storage) http.HandlerFunc {
 	return func(w http.ResponseWriter, r *http.Request) {
 		var requestMetric models.Metrics
 
@@ -173,7 +173,7 @@ func UpdateMetricHandlerJson(s *storage.Storage) http.HandlerFunc {
 	}
 }
 
-func GetMetricHandlerJson(s *storage.Storage) http.HandlerFunc {
+func GetMetricHandlerJSON(s *storage.Storage) http.HandlerFunc {
 	return func(w http.ResponseWriter, r *http.Request) {
 		var metric models.Metrics
 
@@ -205,10 +205,10 @@ func main() {
 	r.Use(middlewares.LoggerMiddleware(logger))
 
 	r.Post("/update/{metric_type}/{metric_name}/{metric_value}", UpdateMetricHandler(s))
-	r.Post("/update", UpdateMetricHandlerJson(s))
+	r.Post("/update", UpdateMetricHandlerJSON(s))
 
 	r.Get("/value/{metric_type}/{metric_name}", GetMetricHandler(s))
-	r.Post("/value", GetMetricHandlerJson(s))
+	r.Post("/value", GetMetricHandlerJSON(s))
 
 	r.Get("/", GetMetricsHandler(s))
 
