@@ -36,7 +36,7 @@ func StartFileStorageLogic(config *config.ServerConfig, s *Storage, logger *logr
 	if config.FileStoragePath != "" {
 		err := s.OpenFile(config.FileStoragePath)
 		if err != nil {
-			logger.Error("Failed to open file: %v", err)
+			logger.Errorf("Failed to open file: %v", err)
 		}
 	} else {
 		logger.Info("File storage is not specified")
@@ -46,7 +46,7 @@ func StartFileStorageLogic(config *config.ServerConfig, s *Storage, logger *logr
 	if config.Restore {
 		err := s.LoadMemStorageFromFile()
 		if err != nil {
-			logger.Error("Failed to restore data from file: %v", err)
+			logger.Errorf("Failed to restore data from file: %v", err)
 		}
 	}
 
@@ -118,16 +118,17 @@ func (s *Storage) LoadMemStorageFromFile() error {
 	decoder := json.NewDecoder(s.FileStorage)
 
 	// Чтение данных из файла
-	var metrics map[string]*models.Metrics
+	var metrics map[string]models.Metrics
 	for {
-		if err := decoder.Decode(metrics); err != nil {
+		if err := decoder.Decode(&metrics); err != nil {
 			if err.Error() == "EOF" {
 				break
 			}
 			return fmt.Errorf("failed to decode metric: %w", err)
 		}
-
-		s.memStorage = metrics
+		for metricName, metricData := range metrics {
+			s.memStorage[metricName] = &metricData
+		}
 	}
 
 	return nil

@@ -27,3 +27,4 @@ vendor/
 test.go
 server.log
 agent.log
+storage.json
