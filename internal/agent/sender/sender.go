@@ -1,8 +1,6 @@
 package sender
 
 import (
-	"bytes"
-	"compress/gzip"
 	"encoding/json"
 	"fmt"
 
@@ -47,24 +45,13 @@ func SendMetricsJSON(address string, metrics map[string]models.Metrics, logger *
 			continue
 		}
 
-		var buf bytes.Buffer
-
-		gz := gzip.NewWriter(&buf)
-		defer gz.Close()
-
-		_, err = gz.Write(jsonData)
-		if err != nil {
-			logger.Println("Error compressing metric data")
-			continue
-		}
-
 		ro := grequests.RequestOptions{
 			Headers: map[string]string{
 				"Content-Type":     "application/json",
-				// "Content-Encoding": "gzip",
+				"Content-Encoding": "gzip",
 			},
-			// DisableCompression: false,
-			JSON: jsonData,
+			DisableCompression: false,
+			JSON:               jsonData,
 		}
 		resp, err := grequests.Post(url, &ro)
 		if err != nil {
