@@ -208,10 +208,10 @@ func main() {
 	r.Use(middlewares.LoggerMiddleware(logger))
 
 	r.Post("/update/{metric_type}/{metric_name}/{metric_value}", UpdateMetricHandler(s))
-	r.Post("/update", UpdateMetricHandlerJSON(s))
+	r.Post("/update/", UpdateMetricHandlerJSON(s))
 
 	r.Get("/value/{metric_type}/{metric_name}", GetMetricHandler(s))
-	r.Post("/value", GetMetricHandlerJSON(s))
+	r.Post("/value/", GetMetricHandlerJSON(s))
 
 	r.Get("/", GetMetricsHandler(s))
 
