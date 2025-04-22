@@ -6,32 +6,32 @@ import (
 
 type StorageRepo interface {
 	UpdateMetric(metricName string) error
-	GetMetric(metricName string) (*models.Metrics, error)
+	GetMetric(metricName string) (*models.Metrics, bool)
 	GetAllMetrics() (map[string]*models.Metrics, error)
 }
 
 type Storage struct {
-	MemStorage map[string]*models.Metrics
+	memStorage map[string]*models.Metrics
 }
 
 func NewStorage() *Storage {
 	return &Storage{
-		MemStorage: make(map[string]*models.Metrics),
+		memStorage: make(map[string]*models.Metrics),
 	}
 }
 
 func (s *Storage) GetAllMetrics() (map[string]*models.Metrics, error) {
-	return s.MemStorage, nil
+	return s.memStorage, nil
 }
 
 func (s *Storage) GetMetric(metricName string) (*models.Metrics, bool) {
-	if metric, ok := s.MemStorage[metricName]; ok {
+	if metric, ok := s.memStorage[metricName]; ok {
 		return metric, true
 	}
 	return nil, false
 }
 
 func (s *Storage) UpdateMetric(metric *models.Metrics) error {
-	s.MemStorage[metric.ID] = metric
+	s.memStorage[metric.ID] = metric
 	return nil
 }
