@@ -1,7 +1,12 @@
 package main
 
 import (
+	"context"
 	"net/http"
+	"os"
+	"os/signal"
+	"syscall"
+	"time"
 
 	"github.com/AndreyKuskov2/metrics-collector/internal/server/config"
 	"github.com/AndreyKuskov2/metrics-collector/internal/server/handlers"
@@ -19,41 +24,33 @@ func main() {
 		return
 	}
 
-	// var actualStorage services.MetricStorage
-	// if с.StoreInterval == 0 {
-	// 	actualStorage = storage.NewAutoDump(memStorage, dump)
-	// } else {
-	// 	actualStorage = memStorage
-	// 	go func() {
-	// 		ticker := time.NewTicker(cfg.StoreInterval)
-	// 		defer ticker.Stop()
-
-	// 		for range ticker.C {
-	// 			if err := dump.SaveMetricToFile(); err != nil {
-	// 				logger.Log.Info("error save to file", zap.Any("error", err))
-	// 			} else {
-	// 				logger.Log.Info("metrics saved to file successfully")
-	// 			}
-	// 		}
-	// 	}()
-	// }
-
-	// Загрузка данных из файла
-	// if c.Restore {
-		// err := dump.LoadMetricsFromFile()
-		// if err != nil {
-		// 	logger.Log.Info("error load from file", zap.Any("error", err))
-		// }
-	// }
-
-	storage := storage.NewStorage()
-	service := services.NewMetricService(storage)
+	stor := storage.NewStorage()
+	service := services.NewMetricService(stor)
 	handler := handlers.NewMetricHandler(service)
 
 	metricRouter := router.GetRouter(logger, handler)
 
-	logger.Printf("Start web-server on %s", c.Address)
-	if err := http.ListenAndServe(c.Address, metricRouter); err != nil {
-		logger.Fatalf("Failed to start server: %v", err)
-	}
+	storage.StartFileStorageLogic(c, stor, logger)
+
+	stop := make(chan os.Signal, 1)
+	signal.Notify(stop, syscall.SIGINT, syscall.SIGTERM)
+
+	go func() {
+		logger.Printf("Start web-server on %s", c.Address)
+		if err := http.ListenAndServe(c.Address, metricRouter); err != nil {
+			logger.Fatalf("Failed to start server: %v", err)
+		}
+	}()
+
+	<-stop
+
+	// Создание контекста с тайм-аутом для завершения работы сервера
+	_, cancel := context.WithTimeout(context.Background(), 5*time.Second)
+	defer cancel()
+
+	stor.SaveMemStorageToFile()
+	stor.CloseFile()
+
+	// Логирование завершения работы сервера
+	logger.Info("Shutting down server...")
 }

@@ -26,7 +26,7 @@ var (
 func init() {
 	pflag.StringVarP(&address, "address", "a", "localhost:8080", "server address")
 	pflag.IntVarP(&storeInterval, "store-interval", "i", 300, "time interval in seconds")
-	pflag.StringVarP(&fileStoragePath, "file-storage-path", "f", "storage.file", "file storage path")
+	pflag.StringVarP(&fileStoragePath, "file-storage-path", "f", "storage.json", "file storage path")
 	pflag.BoolVarP(&restore, "restore", "r", true, "restore from file")
 
 	pflag.Parse()
