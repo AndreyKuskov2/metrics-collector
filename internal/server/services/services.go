@@ -1,6 +1,8 @@
 package services
 
 import (
+	"fmt"
+
 	"github.com/AndreyKuskov2/metrics-collector/internal/models"
 	"github.com/AndreyKuskov2/metrics-collector/internal/server/storage"
 )
@@ -20,6 +22,7 @@ func NewMetricService(storageRepo *storage.Storage) *MetricService {
 }
 
 func (s *MetricService) UpdateMetric(requestMetric *models.Metrics) (*models.Metrics, error) {
+	fmt.Println("IN UpdateMetric", requestMetric)
 	var metric *models.Metrics
 	switch requestMetric.MType {
 	case "counter":
@@ -45,6 +48,11 @@ func (s *MetricService) UpdateMetric(requestMetric *models.Metrics) (*models.Met
 			Value: requestMetric.Value,
 		}
 	}
+
+	if err := s.storageRepo.UpdateMetric(metric); err != nil {
+		return nil, err
+	}
+
 	return metric, nil
 }
 

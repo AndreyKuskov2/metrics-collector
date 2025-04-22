@@ -39,12 +39,12 @@ func main() {
 	// }
 
 	// Загрузка данных из файла
-	if c.Restore {
+	// if c.Restore {
 		// err := dump.LoadMetricsFromFile()
 		// if err != nil {
 		// 	logger.Log.Info("error load from file", zap.Any("error", err))
 		// }
-	}
+	// }
 
 	storage := storage.NewStorage()
 	service := services.NewMetricService(storage)
