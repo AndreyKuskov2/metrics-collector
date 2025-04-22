@@ -210,7 +210,7 @@ func main() {
 	r.Use(middleware.Compress(5, "text/html", "application/json"))
 
 	r.Post("/update/{metric_type}/{metric_name}/{metric_value}", UpdateMetricHandler(s))
-	r.With(middlewares.GzipMiddleware).Post("/update", UpdateMetricHandlerJSON(s))
+	r.With(middlewares.GzipMiddleware).Post("/update/", UpdateMetricHandlerJSON(s))
 
 	r.Get("/value/{metric_type}/{metric_name}", GetMetricHandler(s))
 	r.With(middlewares.GzipMiddleware).Post("/value/", GetMetricHandlerJSON(s))
