@@ -12,6 +12,7 @@ import (
 	"github.com/AndreyKuskov2/metrics-collector/internal/server/storage"
 	"github.com/AndreyKuskov2/metrics-collector/pkg/logger"
 	"github.com/go-chi/chi"
+	"github.com/go-chi/chi/v5/middleware"
 	"github.com/go-chi/render"
 )
 
@@ -206,14 +207,15 @@ func main() {
 	r := chi.NewRouter()
 
 	r.Use(middlewares.LoggerMiddleware(logger))
+	r.Use(middleware.Compress(5, "text/html", "application/json"))
 
 	r.Post("/update/{metric_type}/{metric_name}/{metric_value}", UpdateMetricHandler(s))
-	r.Post("/update", UpdateMetricHandlerJSON(s))
+	r.With(middlewares.GzipMiddleware).Post("/update", UpdateMetricHandlerJSON(s))
 
 	r.Get("/value/{metric_type}/{metric_name}", GetMetricHandler(s))
-	r.Post("/value", GetMetricHandlerJSON(s))
+	r.With(middlewares.GzipMiddleware).Post("/value/", GetMetricHandlerJSON(s))
 
-	r.Get("/", GetMetricsHandler(s))
+	r.With(middlewares.GzipMiddleware).Get("/", GetMetricsHandler(s))
 
 	logger.Printf("Start web-server on %s", c.Address)
 	if err := http.ListenAndServe(c.Address, r); err != nil {
