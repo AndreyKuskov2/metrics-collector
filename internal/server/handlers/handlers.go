@@ -7,16 +7,22 @@ import (
 	"strconv"
 
 	"github.com/AndreyKuskov2/metrics-collector/internal/models"
-	"github.com/AndreyKuskov2/metrics-collector/internal/server/services"
+	"github.com/AndreyKuskov2/metrics-collector/internal/server/utils"
 	"github.com/go-chi/chi"
 	"github.com/go-chi/render"
 )
 
-type MetricHandler struct {
-	services *services.MetricService
+type IMetricHandler interface {
+	UpdateMetric(requestMetric *models.Metrics) (*models.Metrics, error)
+	GetMetric(metricName string) (*models.Metrics, bool)
+	GetAllMetrics() (map[string]*models.Metrics, error)
 }
 
-func NewMetricHandler(services *services.MetricService) *MetricHandler {
+type MetricHandler struct {
+	services IMetricHandler
+}
+
+func NewMetricHandler(services IMetricHandler) *MetricHandler {
 	return &MetricHandler{
 		services: services,
 	}
@@ -24,7 +30,7 @@ func NewMetricHandler(services *services.MetricService) *MetricHandler {
 
 func (mh *MetricHandler) UpdateMetricHandler(w http.ResponseWriter, r *http.Request) {
 	metricType := chi.URLParam(r, "metric_type")
-	if metricType == "" || (metricType != "counter" && metricType != "gauge") {
+	if metricType == "" || (metricType != utils.COUNTER && metricType != utils.GAUGE) {
 		render.Status(r, http.StatusBadRequest)
 		render.PlainText(w, r, "")
 		return
@@ -40,7 +46,7 @@ func (mh *MetricHandler) UpdateMetricHandler(w http.ResponseWriter, r *http.Requ
 
 	var requestMetric *models.Metrics
 	switch metricType {
-	case "counter":
+	case utils.COUNTER:
 		value, err := strconv.ParseInt(metricValue, 10, 64)
 		if err != nil {
 			render.Status(r, http.StatusBadRequest)
@@ -52,7 +58,7 @@ func (mh *MetricHandler) UpdateMetricHandler(w http.ResponseWriter, r *http.Requ
 			MType: metricType,
 			Delta: &value,
 		}
-	case "gauge":
+	case utils.GAUGE:
 		value, err := strconv.ParseFloat(metricValue, 64)
 		if err != nil {
 			render.Status(r, http.StatusBadRequest)
@@ -93,10 +99,10 @@ func (mh *MetricHandler) GetMetricHandler(w http.ResponseWriter, r *http.Request
 	}
 
 	switch metric.MType {
-	case "counter":
+	case utils.COUNTER:
 		value := fmt.Sprintf("%v", *metric.Delta)
 		render.PlainText(w, r, value)
-	case "gauge":
+	case utils.GAUGE:
 		value := fmt.Sprintf("%v", *metric.Value)
 		render.PlainText(w, r, value)
 	}

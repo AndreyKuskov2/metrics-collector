@@ -13,12 +13,6 @@ import (
 	"github.com/sirupsen/logrus"
 )
 
-type StorageRepo interface {
-	UpdateMetric(metricName string) error
-	GetMetric(metricName string) (*models.Metrics, bool)
-	GetAllMetrics() (map[string]*models.Metrics, error)
-}
-
 type Storage struct {
 	FileStorage *os.File
 	Encoder     *json.Encoder

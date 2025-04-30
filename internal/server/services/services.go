@@ -2,18 +2,20 @@ package services
 
 import (
 	"github.com/AndreyKuskov2/metrics-collector/internal/models"
-	"github.com/AndreyKuskov2/metrics-collector/internal/server/storage"
+	"github.com/AndreyKuskov2/metrics-collector/internal/server/utils"
 )
 
 type IMetricService interface {
+	UpdateMetric(metric *models.Metrics) error
 	GetMetric(metricName string) (*models.Metrics, bool)
+	GetAllMetrics() (map[string]*models.Metrics, error)
 }
 
 type MetricService struct {
-	storageRepo *storage.Storage
+	storageRepo IMetricService
 }
 
-func NewMetricService(storageRepo *storage.Storage) *MetricService {
+func NewMetricService(storageRepo IMetricService) *MetricService {
 	return &MetricService{
 		storageRepo: storageRepo,
 	}
@@ -22,7 +24,7 @@ func NewMetricService(storageRepo *storage.Storage) *MetricService {
 func (s *MetricService) UpdateMetric(requestMetric *models.Metrics) (*models.Metrics, error) {
 	var metric *models.Metrics
 	switch requestMetric.MType {
-	case "counter":
+	case utils.COUNTER:
 		oldMetric, ok := s.storageRepo.GetMetric(requestMetric.ID)
 		if ok {
 			totalDelta := *oldMetric.Delta + *requestMetric.Delta
@@ -38,7 +40,7 @@ func (s *MetricService) UpdateMetric(requestMetric *models.Metrics) (*models.Met
 				Delta: requestMetric.Delta,
 			}
 		}
-	case "gauge":
+	case utils.GAUGE:
 		metric = &models.Metrics{
 			ID:    requestMetric.ID,
 			MType: requestMetric.MType,
