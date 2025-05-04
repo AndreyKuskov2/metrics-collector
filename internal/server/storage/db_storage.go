@@ -27,7 +27,7 @@ func NewDBStorage(cfg *config.ServerConfig) (*DBStorage, error) {
 		// os.Exit(1)
 		return nil, err
 	}
-	// defer conn.Close(context.Background())
+	defer conn.Close(context.Background())
 
 	// pool, err := pgxpool.New(context.Background(), cfg.DatabaseDSN)
 	// if err != nil {
