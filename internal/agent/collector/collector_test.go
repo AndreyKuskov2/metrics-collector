@@ -24,20 +24,20 @@ func TestCollectMetrics(t *testing.T) {
 			for metricName, metricData := range metrics {
 				switch metricName {
 				case "PollCount":
-					if v, ok := metricData.Value.(int64); ok {
-						if v != tt.pollCount {
-							t.Errorf("Expected PollCount to be %v, got %v", tt.pollCount, v)
+					if v := metricData.Delta; v != nil {
+						if *v != tt.pollCount {
+							t.Errorf("Expected PollCount to be %v, got %v", tt.pollCount, *v)
 						}
 					} else {
-						t.Errorf("PollCount metric has unexpected type %T", metricData.Value)
+						t.Errorf("PollCount metric is nil")
 					}
 				case "RandomValue":
-					if v, ok := metricData.Value.(float64); ok {
-						if v < 0 || v > 1 {
-							t.Errorf("Expected RandomValue to be between 0 and 1, got %v", v)
+					if v := metricData.Value; v != nil {
+						if *v < 0 || *v > 1 {
+							t.Errorf("Expected RandomValue to be between 0 and 1, got %v", *v)
 						}
 					} else {
-						t.Errorf("RandomValue metric has unexpected type %T", metricData.Value)
+						t.Errorf("RandomValue metric is nil")
 					}
 				}
 			}
