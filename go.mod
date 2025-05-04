@@ -21,6 +21,7 @@ require (
 	github.com/google/go-querystring v1.1.0 // indirect
 	github.com/jackc/pgx/v5 v5.7.4
 	github.com/levigross/grequests v0.0.0-20231203190023-9c307ef1f48d
+	github.com/lib/pq v1.10.9
 	github.com/sirupsen/logrus v1.9.3
 	github.com/spf13/pflag v1.0.6
 	golang.org/x/net v0.38.0 // indirect
