@@ -9,6 +9,7 @@ type IMetricService interface {
 	UpdateMetric(metric *models.Metrics) error
 	GetMetric(metricName string) (*models.Metrics, bool)
 	GetAllMetrics() (map[string]*models.Metrics, error)
+	Ping() error
 }
 
 type MetricService struct {
@@ -19,6 +20,10 @@ func NewMetricService(storageRepo IMetricService) *MetricService {
 	return &MetricService{
 		storageRepo: storageRepo,
 	}
+}
+
+func (s *MetricService) Ping() error {
+	return s.storageRepo.Ping()
 }
 
 func (s *MetricService) UpdateMetric(requestMetric *models.Metrics) (*models.Metrics, error) {

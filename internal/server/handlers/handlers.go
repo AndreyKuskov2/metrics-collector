@@ -16,6 +16,7 @@ type IMetricHandler interface {
 	UpdateMetric(requestMetric *models.Metrics) (*models.Metrics, error)
 	GetMetric(metricName string) (*models.Metrics, bool)
 	GetAllMetrics() (map[string]*models.Metrics, error)
+	Ping() error
 }
 
 type MetricHandler struct {
@@ -165,5 +166,14 @@ func (mh *MetricHandler) GetMetricHandlerJSON(w http.ResponseWriter, r *http.Req
 	}
 
 	render.Status(r, http.StatusNotFound)
+	render.PlainText(w, r, "")
+}
+
+func (mh *MetricHandler) Ping(w http.ResponseWriter, r *http.Request) {
+	if err := mh.services.Ping(); err != nil {
+		render.Status(r, http.StatusInternalServerError)
+		render.PlainText(w, r, "")
+	}
+	render.Status(r, http.StatusOK)
 	render.PlainText(w, r, "")
 }
