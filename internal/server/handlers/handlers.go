@@ -1,12 +1,10 @@
 package handlers
 
 import (
-	"context"
 	"fmt"
 	"html/template"
 	"net/http"
 	"strconv"
-	"time"
 
 	"github.com/AndreyKuskov2/metrics-collector/internal/models"
 	"github.com/AndreyKuskov2/metrics-collector/internal/server/utils"
@@ -18,7 +16,7 @@ type IMetricHandler interface {
 	UpdateMetric(requestMetric *models.Metrics) (*models.Metrics, error)
 	GetMetric(metricName string) (*models.Metrics, bool)
 	GetAllMetrics() (map[string]*models.Metrics, error)
-	Ping(context context.Context) error
+	Ping() error
 }
 
 type MetricHandler struct {
@@ -172,10 +170,10 @@ func (mh *MetricHandler) GetMetricHandlerJSON(w http.ResponseWriter, r *http.Req
 }
 
 func (mh *MetricHandler) Ping(w http.ResponseWriter, r *http.Request) {
-	ctx, cancel := context.WithTimeout(r.Context(), 10*time.Second)
-	defer cancel()
+	// ctx, cancel := context.WithTimeout(r.Context(), 10*time.Second)
+	// defer cancel()
 
-	if err := mh.services.Ping(ctx); err != nil {
+	if err := mh.services.Ping(); err != nil {
 		render.Status(r, http.StatusInternalServerError)
 		render.PlainText(w, r, "")
 	}

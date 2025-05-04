@@ -1,7 +1,6 @@
 package storage
 
 import (
-	"context"
 	"database/sql"
 	"fmt"
 
@@ -24,11 +23,11 @@ func NewDBStorage(cfg *config.ServerConfig) (*DBStorage, error) {
 	}, nil
 }
 
-func (s *DBStorage) Ping(ctx context.Context) error {
+func (s *DBStorage) Ping() error {
 	if s.DB != nil {
 		return fmt.Errorf("database is not connected")
 	}
-	return s.DB.PingContext(ctx)
+	return s.DB.Ping()
 }
 
 func (s *DBStorage) GetAllMetrics() (map[string]*models.Metrics, error) {

@@ -1,8 +1,6 @@
 package storage
 
 import (
-	"context"
-
 	"github.com/AndreyKuskov2/metrics-collector/internal/models"
 	"github.com/AndreyKuskov2/metrics-collector/internal/server/config"
 	"github.com/sirupsen/logrus"
@@ -12,7 +10,7 @@ type Storager interface {
 	GetAllMetrics() (map[string]*models.Metrics, error)
 	GetMetric(metricName string) (*models.Metrics, bool)
 	UpdateMetric(metric *models.Metrics) error
-	Ping(ctx context.Context) error
+	Ping() error
 }
 
 func NewStorage(cfg *config.ServerConfig, logger *logrus.Logger) (Storager, error) {
