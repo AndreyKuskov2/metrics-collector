@@ -37,18 +37,21 @@ func SendMetrics(address string, metrics map[string]models.Metrics, logger *logr
 
 func SendMetricsJSON(address string, metrics map[string]models.Metrics, logger *logrus.Logger) error {
 	for metricName, metricData := range metrics {
-		url := fmt.Sprintf("http://%s/update", address)
+		url := fmt.Sprintf("http://%s/update/", address)
 
 		jsonData, err := json.Marshal(metricData)
 		if err != nil {
 			logger.Printf("Failed to marshal metric %s: %v\n", metricName, err)
 			continue
 		}
+
 		ro := grequests.RequestOptions{
 			Headers: map[string]string{
-				"Content-Type": "application/json",
+				"Content-Type":     "application/json",
+				"Content-Encoding": "gzip",
 			},
-			JSON: jsonData,
+			DisableCompression: false,
+			JSON:               jsonData,
 		}
 		resp, err := grequests.Post(url, &ro)
 		if err != nil {
