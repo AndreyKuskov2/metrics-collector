@@ -176,7 +176,6 @@ func (mh *MetricHandler) Ping(w http.ResponseWriter, r *http.Request) {
 	defer cancel()
 
 	if err := mh.services.Ping(ctx); err != nil {
-		fmt.Println(err)
 		render.Status(r, http.StatusInternalServerError)
 		render.PlainText(w, r, "")
 	}
