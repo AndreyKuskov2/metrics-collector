@@ -8,6 +8,7 @@ import (
 	"github.com/AndreyKuskov2/metrics-collector/internal/server/config"
 
 	// "github.com/jackc/pgx"
+	_ "github.com/lib/pq"
 
 	_ "github.com/jackc/pgx/v5/stdlib"
 )
@@ -17,7 +18,12 @@ type DBStorage struct {
 }
 
 func NewDBStorage(cfg *config.ServerConfig) (*DBStorage, error) {
-	db, err := sql.Open("pgx", cfg.DatabaseDSN)
+	db, err := sql.Open("postgres", cfg.DatabaseDSN)
+	if err != nil {
+		return nil, err
+	}
+
+	err = db.Ping()
 	if err != nil {
 		return nil, err
 	}
