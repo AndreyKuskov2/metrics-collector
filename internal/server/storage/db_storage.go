@@ -1,6 +1,7 @@
 package storage
 
 import (
+	"context"
 	"database/sql"
 
 	"github.com/AndreyKuskov2/metrics-collector/internal/models"
@@ -22,8 +23,8 @@ func NewDBStorage(cfg *config.ServerConfig) (*DBStorage, error) {
 	}, nil
 }
 
-func (s *DBStorage) Ping() error {
-	if err := s.DB.Ping(); err != nil {
+func (s *DBStorage) Ping(ctx context.Context) error {
+	if err := s.DB.PingContext(ctx); err != nil {
 		return err
 	}
 	return nil
