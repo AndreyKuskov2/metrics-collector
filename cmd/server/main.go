@@ -50,7 +50,7 @@ func main() {
 
 	stor.SaveMemStorageToFile()
 	stor.CloseFile()
-
+  
 	// Логирование завершения работы сервера
 	logger.Info("Shutting down server...")
 }
