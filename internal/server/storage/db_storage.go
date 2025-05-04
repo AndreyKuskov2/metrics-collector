@@ -1,33 +1,34 @@
 package storage
 
 import (
-	"context"
+	"database/sql"
 	"fmt"
 
 	"github.com/AndreyKuskov2/metrics-collector/internal/models"
 	"github.com/AndreyKuskov2/metrics-collector/internal/server/config"
+
 	// "github.com/jackc/pgx"
-	"github.com/jackc/pgx/v5"
+
 	_ "github.com/jackc/pgx/v5/stdlib"
 )
 
 type DBStorage struct {
-	DB *pgx.Conn
+	DB *sql.DB
 }
 
 func NewDBStorage(cfg *config.ServerConfig) (*DBStorage, error) {
-	// db, err := sql.Open("pgx", cfg.DatabaseDSN)
-	// if err != nil {
-	// 	return nil, err
-	// }
-
-	conn, err := pgx.Connect(context.Background(), cfg.DatabaseDSN)
+	db, err := sql.Open("pgx", cfg.DatabaseDSN)
 	if err != nil {
-		// fmt.Println(err)
-		// fmt.Fprintf(os.Stderr, "Unable to connect to database: %v\n", err)
-		// os.Exit(1)
 		return nil, err
 	}
+
+	// conn, err := pgx.Connect(context.Background(), cfg.DatabaseDSN)
+	// if err != nil {
+	// 	// fmt.Println(err)
+	// 	// fmt.Fprintf(os.Stderr, "Unable to connect to database: %v\n", err)
+	// 	// os.Exit(1)
+	// 	return nil, err
+	// }
 	// defer conn.Close(context.Background())
 
 	// pool, err := pgxpool.New(context.Background(), cfg.DatabaseDSN)
@@ -38,7 +39,7 @@ func NewDBStorage(cfg *config.ServerConfig) (*DBStorage, error) {
 	// db := stdlib.OpenDBFromPool(pool)
 
 	return &DBStorage{
-		DB: conn,
+		DB: db,
 	}, nil
 }
 
@@ -46,7 +47,7 @@ func (s *DBStorage) Ping() error {
 	if s.DB == nil {
 		return fmt.Errorf("database is not connected")
 	}
-	return s.DB.Ping(context.Background())
+	return s.DB.Ping()
 }
 
 func (s *DBStorage) GetAllMetrics() (map[string]*models.Metrics, error) {
