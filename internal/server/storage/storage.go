@@ -19,11 +19,11 @@ func NewStorage(cfg *config.ServerConfig, logger *logrus.Logger) (Storager, erro
 		return NewMemStorage(), nil
 	} else if cfg.DatabaseDSN != "" {
 		logger.Info("Selected storage: DB")
-		Db, err := NewDbStorage(cfg)
+		DB, err := NewDBStorage(cfg)
 		if err != nil {
 			return nil, err
 		}
-		return Db, nil
+		return DB, nil
 	} else {
 		logger.Info("Selected storage: File")
 		storage := NewFileMemStorage()
