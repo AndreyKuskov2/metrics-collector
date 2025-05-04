@@ -3,6 +3,7 @@ package storage
 import (
 	"context"
 	"database/sql"
+	"fmt"
 
 	"github.com/AndreyKuskov2/metrics-collector/internal/models"
 	"github.com/AndreyKuskov2/metrics-collector/internal/server/config"
@@ -24,10 +25,10 @@ func NewDBStorage(cfg *config.ServerConfig) (*DBStorage, error) {
 }
 
 func (s *DBStorage) Ping(ctx context.Context) error {
-	if err := s.DB.PingContext(ctx); err != nil {
-		return err
+	if s.DB != nil {
+		return fmt.Errorf("database is not connected")
 	}
-	return nil
+	return s.DB.PingContext(ctx)
 }
 
 func (s *DBStorage) GetAllMetrics() (map[string]*models.Metrics, error) {
