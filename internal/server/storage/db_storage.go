@@ -6,8 +6,9 @@ import (
 
 	"github.com/AndreyKuskov2/metrics-collector/internal/models"
 	"github.com/AndreyKuskov2/metrics-collector/internal/server/config"
+	// "github.com/jackc/pgx"
 	"github.com/jackc/pgx/v5"
-	// _ "github.com/jackc/pgx/v5/stdlib"
+	_ "github.com/jackc/pgx/v5/stdlib"
 )
 
 type DBStorage struct {
@@ -27,7 +28,7 @@ func NewDBStorage(cfg *config.ServerConfig) (*DBStorage, error) {
 		// os.Exit(1)
 		return nil, err
 	}
-	defer conn.Close(context.Background())
+	// defer conn.Close(context.Background())
 
 	// pool, err := pgxpool.New(context.Background(), cfg.DatabaseDSN)
 	// if err != nil {
@@ -42,7 +43,7 @@ func NewDBStorage(cfg *config.ServerConfig) (*DBStorage, error) {
 }
 
 func (s *DBStorage) Ping() error {
-	if s.DB != nil {
+	if s.DB == nil {
 		return fmt.Errorf("database is not connected")
 	}
 	return s.DB.Ping(context.Background())
