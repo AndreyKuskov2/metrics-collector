@@ -177,6 +177,7 @@ func (mh *MetricHandler) Ping(w http.ResponseWriter, r *http.Request) {
 	if err := mh.services.Ping(r.Context()); err != nil {
 		render.Status(r, http.StatusInternalServerError)
 		render.PlainText(w, r, "")
+		return
 	}
 	render.Status(r, http.StatusOK)
 	render.PlainText(w, r, "")
