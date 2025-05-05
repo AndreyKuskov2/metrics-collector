@@ -59,7 +59,7 @@ func (s *DBStorage) Ping(ctx context.Context) error {
 	// if s.DB == nil {
 	// 	return fmt.Errorf("database is not connected")
 	// }
-	return s.DB.PingContext(ctx)
+	return s.DB.Ping()
 }
 
 func (s *DBStorage) GetAllMetrics() (map[string]*models.Metrics, error) {
