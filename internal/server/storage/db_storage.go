@@ -3,7 +3,6 @@ package storage
 import (
 	"context"
 	"database/sql"
-	"fmt"
 
 	"github.com/AndreyKuskov2/metrics-collector/internal/models"
 	"github.com/AndreyKuskov2/metrics-collector/internal/server/config"
@@ -23,10 +22,10 @@ func NewDBStorage(cfg *config.ServerConfig) (*DBStorage, error) {
 		return nil, err
 	}
 
-	err = db.Ping()
-	if err != nil {
-		return nil, err
-	}
+	// err = db.Ping()
+	// if err != nil {
+	// 	return nil, err
+	// }
 
 	// conn, err := pgx.Connect(context.Background(), cfg.DatabaseDSN)
 	// if err != nil {
@@ -57,9 +56,9 @@ func (s *DBStorage) CloseDB() error {
 }
 
 func (s *DBStorage) Ping(ctx context.Context) error {
-	if s.DB == nil {
-		return fmt.Errorf("database is not connected")
-	}
+	// if s.DB == nil {
+	// 	return fmt.Errorf("database is not connected")
+	// }
 	return s.DB.PingContext(ctx)
 }
 
