@@ -49,6 +49,13 @@ func NewDBStorage(cfg *config.ServerConfig) (*DBStorage, error) {
 	}, nil
 }
 
+func (s *DBStorage) CloseDB() error {
+	if err := s.DB.Close(); err != nil {
+		return err
+	}
+	return nil
+}
+
 func (s *DBStorage) Ping(ctx context.Context) error {
 	if s.DB == nil {
 		return fmt.Errorf("database is not connected")
