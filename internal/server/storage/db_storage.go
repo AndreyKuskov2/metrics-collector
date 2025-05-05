@@ -1,16 +1,16 @@
 package storage
 
 import (
+	"context"
 	"database/sql"
 	"fmt"
 
 	"github.com/AndreyKuskov2/metrics-collector/internal/models"
 	"github.com/AndreyKuskov2/metrics-collector/internal/server/config"
 
-	// "github.com/jackc/pgx"
+	_ "github.com/jackc/pgx/v5"
 	_ "github.com/lib/pq"
-
-	_ "github.com/jackc/pgx/v5/stdlib"
+	// _ "github.com/jackc/pgx/v5/stdlib"
 )
 
 type DBStorage struct {
@@ -18,7 +18,7 @@ type DBStorage struct {
 }
 
 func NewDBStorage(cfg *config.ServerConfig) (*DBStorage, error) {
-	db, err := sql.Open("postgres", cfg.DatabaseDSN)
+	db, err := sql.Open("pgx", cfg.DatabaseDSN)
 	if err != nil {
 		return nil, err
 	}
@@ -49,11 +49,11 @@ func NewDBStorage(cfg *config.ServerConfig) (*DBStorage, error) {
 	}, nil
 }
 
-func (s *DBStorage) Ping() error {
+func (s *DBStorage) Ping(ctx context.Context) error {
 	if s.DB == nil {
 		return fmt.Errorf("database is not connected")
 	}
-	return s.DB.Ping()
+	return s.DB.PingContext(ctx)
 }
 
 func (s *DBStorage) GetAllMetrics() (map[string]*models.Metrics, error) {
