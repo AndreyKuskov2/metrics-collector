@@ -4,20 +4,28 @@ import (
 	"context"
 
 	"github.com/AndreyKuskov2/metrics-collector/internal/models"
+	"github.com/AndreyKuskov2/metrics-collector/internal/server/config"
 )
 
 type MemStorage struct {
 	memStorage map[string]*models.Metrics
+	DB         *DBStorage
 }
 
-func NewMemStorage() *MemStorage {
+func NewMemStorage(cfg *config.ServerConfig) *MemStorage {
+	db, err := NewDBStorage(cfg)
+	if err != nil {
+		return nil
+	}
 	return &MemStorage{
 		memStorage: make(map[string]*models.Metrics),
+		DB:         db,
 	}
 }
 
 func (s *MemStorage) Ping(ctx context.Context) error {
-	return nil
+	return s.DB.Ping(ctx)
+	// return nil
 }
 
 func (s *MemStorage) GetAllMetrics() (map[string]*models.Metrics, error) {
