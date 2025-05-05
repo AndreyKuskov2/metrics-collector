@@ -1,7 +1,6 @@
 package handlers
 
 import (
-	"context"
 	"fmt"
 	"html/template"
 	"net/http"
@@ -17,7 +16,7 @@ type IMetricHandler interface {
 	UpdateMetric(requestMetric *models.Metrics) (*models.Metrics, error)
 	GetMetric(metricName string) (*models.Metrics, bool)
 	GetAllMetrics() (map[string]*models.Metrics, error)
-	Ping(ctx context.Context) error
+	Ping() error
 }
 
 type MetricHandler struct {
@@ -174,7 +173,7 @@ func (mh *MetricHandler) Ping(w http.ResponseWriter, r *http.Request) {
 	// ctx, cancel := context.WithTimeout(r.Context(), 10*time.Second)
 	// defer cancel()
 
-	if err := mh.services.Ping(r.Context()); err != nil {
+	if err := mh.services.Ping(); err != nil {
 		render.Status(r, http.StatusInternalServerError)
 		render.PlainText(w, r, "")
 		return

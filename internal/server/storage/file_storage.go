@@ -1,7 +1,6 @@
 package storage
 
 import (
-	"context"
 	"encoding/json"
 	"fmt"
 	"log"
@@ -21,13 +20,13 @@ type FileMemStorage struct {
 	mu          sync.Mutex
 }
 
-func NewFileMemStorage(cfg *config.ServerConfig) *FileMemStorage {
+func NewFileMemStorage() *FileMemStorage {
 	return &FileMemStorage{
 		memStorage: make(map[string]*models.Metrics),
 	}
 }
 
-func (s *FileMemStorage) Ping(ctx context.Context) error {
+func (s *FileMemStorage) Ping() error {
 	return nil
 }
 

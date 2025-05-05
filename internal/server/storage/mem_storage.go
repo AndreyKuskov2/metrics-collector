@@ -1,23 +1,20 @@
 package storage
 
 import (
-	"context"
-
 	"github.com/AndreyKuskov2/metrics-collector/internal/models"
-	"github.com/AndreyKuskov2/metrics-collector/internal/server/config"
 )
 
 type MemStorage struct {
 	memStorage map[string]*models.Metrics
 }
 
-func NewMemStorage(cfg *config.ServerConfig) *MemStorage {
+func NewMemStorage() *MemStorage {
 	return &MemStorage{
 		memStorage: make(map[string]*models.Metrics),
 	}
 }
 
-func (s *MemStorage) Ping(ctx context.Context) error {
+func (s *MemStorage) Ping() error {
 	return nil
 }
 
