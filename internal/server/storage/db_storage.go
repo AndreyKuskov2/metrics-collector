@@ -8,9 +8,9 @@ import (
 	"github.com/AndreyKuskov2/metrics-collector/internal/models"
 	"github.com/AndreyKuskov2/metrics-collector/internal/server/config"
 
-	_ "github.com/jackc/pgx/v5"
-	_ "github.com/lib/pq"
-	// _ "github.com/jackc/pgx/v5/stdlib"
+	// _ "github.com/jackc/pgx/v5"
+	// _ "github.com/lib/pq"
+	_ "github.com/jackc/pgx/v5/stdlib"
 )
 
 type DBStorage struct {
