@@ -172,10 +172,10 @@ func (mh *MetricHandler) GetMetricHandlerJSON(w http.ResponseWriter, r *http.Req
 }
 
 func (mh *MetricHandler) Ping(w http.ResponseWriter, r *http.Request) {
-	ctx, close := context.WithTimeout(r.Context(), 500*time.Millisecond)
-	defer close()
+	// ctx, close := context.WithTimeout(r.Context(), 500*time.Millisecond)
+	// defer close()
 
-	if err := mh.services.Ping(ctx); err != nil {
+	if err := mh.services.Ping(r.Context()); err != nil {
 		render.Status(r, http.StatusInternalServerError)
 		render.PlainText(w, r, "")
 		return
