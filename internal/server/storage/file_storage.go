@@ -19,23 +19,16 @@ type FileMemStorage struct {
 	Encoder     *json.Encoder
 	memStorage  map[string]*models.Metrics
 	mu          sync.Mutex
-	DB          *DBStorage
 }
 
 func NewFileMemStorage(cfg *config.ServerConfig) *FileMemStorage {
-	db, err := NewDBStorage(cfg)
-	if err != nil {
-		return nil
-	}
 	return &FileMemStorage{
 		memStorage: make(map[string]*models.Metrics),
-		DB:         db,
 	}
 }
 
 func (s *FileMemStorage) Ping(ctx context.Context) error {
-	return s.DB.Ping(ctx)
-	// return nil
+	return nil
 }
 
 func StartFileStorageLogic(config *config.ServerConfig, s *FileMemStorage, logger *logrus.Logger) {

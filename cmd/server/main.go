@@ -26,7 +26,7 @@ func main() {
 
 	stor, err := storage.NewStorage(cfg, logger)
 	if err != nil {
-		logger.Infof("failed to create repository: %v", err)
+		logger.Fatalf("failed to create repository: %v", err)
 	}
 	service := services.NewMetricService(stor)
 	handler := handlers.NewMetricHandler(service)

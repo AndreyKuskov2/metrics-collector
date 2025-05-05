@@ -15,15 +15,6 @@ type Storager interface {
 	Ping(ctx context.Context) error
 }
 
-// else if cfg.DatabaseDSN != "" {
-// 	logger.Info("Selected storage: DB")
-// 	DB, err := NewDBStorage(cfg)
-// 	if err != nil {
-// 		return nil, err
-// 	}
-// 	return DB, nil
-// }
-
 func NewStorage(cfg *config.ServerConfig, logger *logrus.Logger) (Storager, error) {
 	if cfg.FileStoragePath == "" && cfg.DatabaseDSN == "" {
 		logger.Info("No storage selected using default: MemoryStorage")
