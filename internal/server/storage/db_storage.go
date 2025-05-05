@@ -13,8 +13,7 @@ import (
 )
 
 type DBStorage struct {
-	DB  *sql.DB
-	DSN string
+	DB *sql.DB
 }
 
 func NewDBStorage(cfg *config.ServerConfig) (*DBStorage, error) {
@@ -45,8 +44,7 @@ func NewDBStorage(cfg *config.ServerConfig) (*DBStorage, error) {
 	// db := stdlib.OpenDBFromPool(pool)
 
 	return &DBStorage{
-		DB:  db,
-		DSN: cfg.DatabaseDSN,
+		DB: db,
 	}, nil
 }
 
@@ -58,13 +56,7 @@ func NewDBStorage(cfg *config.ServerConfig) (*DBStorage, error) {
 // }
 
 func (s *DBStorage) Ping(ctx context.Context) error {
-	db, err := sql.Open("pgx", s.DSN)
-	if err != nil {
-		return err
-	}
-	defer db.Close()
-
-	return db.PingContext(ctx)
+	return s.DB.PingContext(ctx)
 }
 
 func (s *DBStorage) GetAllMetrics() (map[string]*models.Metrics, error) {
