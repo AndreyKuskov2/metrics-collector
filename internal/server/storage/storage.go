@@ -16,20 +16,20 @@ type Storager interface {
 }
 
 func NewStorage(cfg *config.ServerConfig, logger *logrus.Logger) (Storager, error) {
-	if cfg.FileStoragePath == "" && cfg.DatabaseDSN == "" {
-		logger.Info("No storage selected using default: MemoryStorage")
-		return NewMemStorage(), nil
-	} else if cfg.DatabaseDSN != "" {
-		logger.Info("Selected storage: DB")
-		DB, err := NewDBStorage(cfg)
-		if err != nil {
-			return nil, err
-		}
-		return DB, nil
-	} else {
-		logger.Info("Selected storage: File")
-		storage := NewFileMemStorage()
-		StartFileStorageLogic(cfg, storage, logger)
-		return storage, nil
+	// if cfg.FileStoragePath == "" && cfg.DatabaseDSN == "" {
+	// 	logger.Info("No storage selected using default: MemoryStorage")
+	// 	return NewMemStorage(), nil
+	// } else if cfg.DatabaseDSN != "" {
+	logger.Info("Selected storage: DB")
+	DB, err := NewDBStorage(cfg)
+	if err != nil {
+		return nil, err
 	}
+	return DB, nil
+	// } else {
+	// 	logger.Info("Selected storage: File")
+	// 	storage := NewFileMemStorage()
+	// 	StartFileStorageLogic(cfg, storage, logger)
+	// 	return storage, nil
+	// }
 }
