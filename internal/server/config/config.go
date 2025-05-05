@@ -24,7 +24,7 @@ func NewConfig() (*ServerConfig, error) {
 	pflag.IntVarP(&serverConfig.StoreInterval, "store-interval", "i", 300, "time interval in seconds")
 	pflag.StringVarP(&serverConfig.FileStoragePath, "file-storage-path", "f", "storage.json", "file storage path")
 	pflag.BoolVarP(&serverConfig.Restore, "restore", "r", true, "restore from file")
-	pflag.StringVarP(&serverConfig.DatabaseDSN, "database-dsn", "d", "postgres://postgres:postgres@postgres:5432/praktikum?sslmode=disable", "database url")
+	pflag.StringVarP(&serverConfig.DatabaseDSN, "database-dsn", "d", "", "database url")
 
 	pflag.Parse()
 
