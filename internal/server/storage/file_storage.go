@@ -1,6 +1,7 @@
 package storage
 
 import (
+	"context"
 	"encoding/json"
 	"fmt"
 	"log"
@@ -26,7 +27,7 @@ func NewFileMemStorage() *FileMemStorage {
 	}
 }
 
-func (s *FileMemStorage) Ping() error {
+func (s *FileMemStorage) Ping(ctx context.Context) error {
 	return nil
 }
 
