@@ -23,6 +23,7 @@ func main() {
 		logger.Info("failed to get config")
 		return
 	}
+	logger.Infof("DATABASE DSN: %s", cfg.DatabaseDSN)
 
 	stor, err := storage.NewStorage(cfg, logger)
 	if err != nil {
