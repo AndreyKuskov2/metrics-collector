@@ -10,21 +10,25 @@ import (
 	"github.com/AndreyKuskov2/metrics-collector/internal/server/utils"
 	"github.com/go-chi/chi"
 	"github.com/go-chi/render"
+	"github.com/sirupsen/logrus"
 )
 
 type IMetricHandler interface {
 	UpdateMetric(requestMetric *models.Metrics) (*models.Metrics, error)
 	GetMetric(metricName string) (*models.Metrics, bool)
 	GetAllMetrics() (map[string]*models.Metrics, error)
+	Ping() error
 }
 
 type MetricHandler struct {
 	services IMetricHandler
+	logger   *logrus.Logger
 }
 
-func NewMetricHandler(services IMetricHandler) *MetricHandler {
+func NewMetricHandler(services IMetricHandler, logger *logrus.Logger) *MetricHandler {
 	return &MetricHandler{
 		services: services,
+		logger:   logger,
 	}
 }
 
@@ -111,12 +115,14 @@ func (mh *MetricHandler) GetMetricHandler(w http.ResponseWriter, r *http.Request
 func (mh *MetricHandler) GetMetricsHandler(w http.ResponseWriter, r *http.Request) {
 	metrics, err := mh.services.GetAllMetrics()
 	if err != nil {
+		mh.logger.Infof("all metrics handler error: %s", err)
 		render.Status(r, http.StatusNotFound)
 		render.PlainText(w, r, "")
 		return
 	}
 	tmpl, err := template.ParseFiles("./web/template/index.html")
 	if err != nil {
+		mh.logger.Errorf("cannot parse template file: %s", err)
 		render.Status(r, http.StatusBadRequest)
 		render.PlainText(w, r, "")
 		return
@@ -165,5 +171,16 @@ func (mh *MetricHandler) GetMetricHandlerJSON(w http.ResponseWriter, r *http.Req
 	}
 
 	render.Status(r, http.StatusNotFound)
+	render.PlainText(w, r, "")
+}
+
+func (mh *MetricHandler) Ping(w http.ResponseWriter, r *http.Request) {
+	if err := mh.services.Ping(); err != nil {
+		mh.logger.Infof("ping error: %s", err)
+		render.Status(r, http.StatusInternalServerError)
+		render.PlainText(w, r, "")
+		return
+	}
+	render.Status(r, http.StatusOK)
 	render.PlainText(w, r, "")
 }
