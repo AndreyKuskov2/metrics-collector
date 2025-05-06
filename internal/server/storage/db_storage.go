@@ -8,12 +8,14 @@ import (
 
 	"github.com/AndreyKuskov2/metrics-collector/internal/models"
 	"github.com/AndreyKuskov2/metrics-collector/internal/server/config"
-	"github.com/AndreyKuskov2/metrics-collector/pkg/logger"
 
 	// _ "github.com/jackc/pgx/v5"
 	// _ "github.com/lib/pq"
 
-	_ "github.com/jackc/pgx/v5/stdlib"
+	// "github.com/jackc/pgx/stdlib"
+	// "github.com/jackc/pgx/stdlib"
+	"github.com/jackc/pgx/v5/pgxpool"
+	"github.com/jackc/pgx/v5/stdlib"
 )
 
 type DBStorage struct {
@@ -21,17 +23,17 @@ type DBStorage struct {
 }
 
 func NewDBStorage(cfg *config.ServerConfig) (*DBStorage, error) {
-	db, err := sql.Open("pgx", cfg.DatabaseDSN)
-	if err != nil {
-		return nil, err
-	}
+	// db, err := sql.Open("pgx", cfg.DatabaseDSN)
+	// if err != nil {
+	// 	return nil, err
+	// }
 
-	err = db.Ping()
-	if err != nil {
-		logger.Log.Infof("ERROR IN DB STORAGE CONSTRUCTOR: %s", err)
-		return nil, err
-	}
-	logger.Log.Infof("NO ERROR IN CONSTRUCTOR")
+	// err = db.Ping()
+	// if err != nil {
+	// 	logger.Log.Infof("ERROR IN DB STORAGE CONSTRUCTOR: %s", err)
+	// 	return nil, err
+	// }
+	// logger.Log.Infof("NO ERROR IN CONSTRUCTOR")
 
 	// conn, err := pgx.Connect(context.Background(), cfg.DatabaseDSN)
 	// if err != nil {
@@ -42,12 +44,12 @@ func NewDBStorage(cfg *config.ServerConfig) (*DBStorage, error) {
 	// }
 	// defer conn.Close(context.Background())
 
-	// pool, err := pgxpool.New(context.Background(), cfg.DatabaseDSN)
-	// if err != nil {
-	// 	return nil, err
-	// }
+	pool, err := pgxpool.New(context.Background(), cfg.DatabaseDSN)
+	if err != nil {
+		return nil, err
+	}
 
-	// db := stdlib.OpenDBFromPool(pool)
+	db := stdlib.OpenDBFromPool(pool)
 
 	return &DBStorage{
 		DB: db,
