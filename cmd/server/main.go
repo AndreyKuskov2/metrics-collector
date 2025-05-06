@@ -24,7 +24,7 @@ func main() {
 		return
 	}
 
-	stor, err := storage.NewStorage(cfg, logger)
+	stor, err := storage.NewStorage(context.Background(), cfg, logger)
 	if err != nil {
 		logger.Fatalf("failed to create repository: %v", err)
 	}
@@ -44,8 +44,6 @@ func main() {
 	}()
 
 	<-stop
-
-	logger.Infof("STOP SERVER")
 
 	_, cancel := context.WithTimeout(context.Background(), 5*time.Second)
 	defer cancel()

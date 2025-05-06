@@ -115,12 +115,14 @@ func (mh *MetricHandler) GetMetricHandler(w http.ResponseWriter, r *http.Request
 func (mh *MetricHandler) GetMetricsHandler(w http.ResponseWriter, r *http.Request) {
 	metrics, err := mh.services.GetAllMetrics()
 	if err != nil {
+		mh.logger.Infof("all metrics handler error: %s", err)
 		render.Status(r, http.StatusNotFound)
 		render.PlainText(w, r, "")
 		return
 	}
 	tmpl, err := template.ParseFiles("./web/template/index.html")
 	if err != nil {
+		mh.logger.Errorf("cannot parse template file: %s", err)
 		render.Status(r, http.StatusBadRequest)
 		render.PlainText(w, r, "")
 		return
