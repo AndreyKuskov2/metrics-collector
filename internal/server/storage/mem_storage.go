@@ -1,8 +1,6 @@
 package storage
 
 import (
-	"context"
-
 	"github.com/AndreyKuskov2/metrics-collector/internal/models"
 )
 
@@ -16,7 +14,7 @@ func NewMemStorage() *MemStorage {
 	}
 }
 
-func (s *MemStorage) Ping(ctx context.Context) error {
+func (s *MemStorage) Ping() error {
 	return nil
 }
 

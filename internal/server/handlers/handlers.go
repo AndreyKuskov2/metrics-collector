@@ -1,7 +1,6 @@
 package handlers
 
 import (
-	"context"
 	"fmt"
 	"html/template"
 	"net/http"
@@ -9,25 +8,27 @@ import (
 
 	"github.com/AndreyKuskov2/metrics-collector/internal/models"
 	"github.com/AndreyKuskov2/metrics-collector/internal/server/utils"
-	"github.com/AndreyKuskov2/metrics-collector/pkg/logger"
 	"github.com/go-chi/chi"
 	"github.com/go-chi/render"
+	"github.com/sirupsen/logrus"
 )
 
 type IMetricHandler interface {
 	UpdateMetric(requestMetric *models.Metrics) (*models.Metrics, error)
 	GetMetric(metricName string) (*models.Metrics, bool)
 	GetAllMetrics() (map[string]*models.Metrics, error)
-	Ping(ctx context.Context) error
+	Ping() error
 }
 
 type MetricHandler struct {
 	services IMetricHandler
+	logger   *logrus.Logger
 }
 
-func NewMetricHandler(services IMetricHandler) *MetricHandler {
+func NewMetricHandler(services IMetricHandler, logger *logrus.Logger) *MetricHandler {
 	return &MetricHandler{
 		services: services,
+		logger:   logger,
 	}
 }
 
@@ -172,12 +173,8 @@ func (mh *MetricHandler) GetMetricHandlerJSON(w http.ResponseWriter, r *http.Req
 }
 
 func (mh *MetricHandler) Ping(w http.ResponseWriter, r *http.Request) {
-	// ctx, close := context.WithTimeout(r.Context(), 500*time.Millisecond)
-	// defer close()
-
-	logger.Log.Infof("IN PING HANDLER")
-	if err := mh.services.Ping(r.Context()); err != nil {
-		logger.Log.Infof("ERROR PING HANDLER: %s", err)
+	if err := mh.services.Ping(); err != nil {
+		mh.logger.Infof("ping error: %s", err)
 		render.Status(r, http.StatusInternalServerError)
 		render.PlainText(w, r, "")
 		return

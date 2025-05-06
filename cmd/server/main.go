@@ -23,14 +23,13 @@ func main() {
 		logger.Info("failed to get config")
 		return
 	}
-	logger.Infof("DATABASE DSN: %s", cfg.DatabaseDSN)
 
 	stor, err := storage.NewStorage(cfg, logger)
 	if err != nil {
 		logger.Fatalf("failed to create repository: %v", err)
 	}
 	service := services.NewMetricService(stor)
-	handler := handlers.NewMetricHandler(service)
+	handler := handlers.NewMetricHandler(service, logger)
 
 	metricRouter := router.GetRouter(logger, handler)
 
@@ -48,10 +47,8 @@ func main() {
 
 	logger.Infof("STOP SERVER")
 
-	// Создание контекста с тайм-аутом для завершения работы сервера
 	_, cancel := context.WithTimeout(context.Background(), 5*time.Second)
 	defer cancel()
 
-	// Логирование завершения работы сервера
 	logger.Info("Shutting down server...")
 }

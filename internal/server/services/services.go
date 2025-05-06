@@ -1,8 +1,6 @@
 package services
 
 import (
-	"context"
-
 	"github.com/AndreyKuskov2/metrics-collector/internal/models"
 	"github.com/AndreyKuskov2/metrics-collector/internal/server/utils"
 )
@@ -11,7 +9,7 @@ type IMetricService interface {
 	UpdateMetric(metric *models.Metrics) error
 	GetMetric(metricName string) (*models.Metrics, bool)
 	GetAllMetrics() (map[string]*models.Metrics, error)
-	Ping(ctx context.Context) error
+	Ping() error
 }
 
 type MetricService struct {
@@ -24,8 +22,8 @@ func NewMetricService(storageRepo IMetricService) *MetricService {
 	}
 }
 
-func (s *MetricService) Ping(ctx context.Context) error {
-	return s.storageRepo.Ping(ctx)
+func (s *MetricService) Ping() error {
+	return s.storageRepo.Ping()
 }
 
 func (s *MetricService) UpdateMetric(requestMetric *models.Metrics) (*models.Metrics, error) {
