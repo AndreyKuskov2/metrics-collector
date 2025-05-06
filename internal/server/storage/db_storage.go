@@ -8,6 +8,7 @@ import (
 
 	"github.com/AndreyKuskov2/metrics-collector/internal/models"
 	"github.com/AndreyKuskov2/metrics-collector/internal/server/config"
+	"github.com/AndreyKuskov2/metrics-collector/pkg/logger"
 
 	// _ "github.com/jackc/pgx/v5"
 	// _ "github.com/lib/pq"
@@ -48,8 +49,16 @@ func NewDBStorage(cfg *config.ServerConfig) (*DBStorage, error) {
 	if err != nil {
 		return nil, err
 	}
+	logger.Log.Infof("CREATE BD POOL")
 
 	db := stdlib.OpenDBFromPool(pool)
+
+	err = db.Ping()
+	if err != nil {
+		logger.Log.Infof("ERROR IN DB STORAGE CONSTRUCTOR: %s", err)
+		return nil, err
+	}
+	logger.Log.Infof("NO ERROR IN CONSTRUCTOR")
 
 	return &DBStorage{
 		DB: db,

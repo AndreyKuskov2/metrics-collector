@@ -46,6 +46,8 @@ func main() {
 
 	<-stop
 
+	logger.Infof("STOP SERVER")
+
 	// Создание контекста с тайм-аутом для завершения работы сервера
 	_, cancel := context.WithTimeout(context.Background(), 5*time.Second)
 	defer cancel()
