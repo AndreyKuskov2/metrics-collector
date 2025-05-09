@@ -28,8 +28,8 @@ func main() {
 			pollCount++
 			metrics = collector.CollectMetrics(pollCount)
 		case <-tickerReport.C:
-			// sender.SendMetrics(c.Address, metrics, logger)
-			// sender.SendMetricsJSON(c.Address, metrics, logger)
+			sender.SendMetrics(c.Address, metrics, logger)
+			sender.SendMetricsJSON(c.Address, metrics, logger)
 			sender.SendMetricsBatch(c.Address, metrics, logger)
 			logger.Info("Sent metrics")
 		}
