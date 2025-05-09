@@ -1,6 +1,7 @@
 package handlers
 
 import (
+	"encoding/json"
 	"fmt"
 	"html/template"
 	"net/http"
@@ -18,6 +19,7 @@ type IMetricHandler interface {
 	GetMetric(metricName string) (*models.Metrics, bool)
 	GetAllMetrics() (map[string]*models.Metrics, error)
 	Ping() error
+	UpdateBatchMetricsServ(metrics []models.Metrics, r *http.Request) error
 }
 
 type MetricHandler struct {
@@ -128,6 +130,27 @@ func (mh *MetricHandler) GetMetricsHandler(w http.ResponseWriter, r *http.Reques
 		return
 	}
 	tmpl.Execute(w, metrics)
+}
+
+func (mh *MetricHandler) UpdateManyMetricsHandler(w http.ResponseWriter, r *http.Request) {
+	var requestMetrics []models.Metrics
+
+	if err := json.NewDecoder(r.Body).Decode(&requestMetrics); err != nil {
+		mh.logger.Infof("failed to bind json: %v", err)
+		render.Status(r, http.StatusBadRequest)
+		render.PlainText(w, r, err.Error())
+		return
+	}
+
+	if err := mh.services.UpdateBatchMetricsServ(requestMetrics, r); err != nil {
+		mh.logger.Infof("Failed to update metrics: %v", err)
+		render.Status(r, http.StatusInternalServerError)
+		render.PlainText(w, r, err.Error())
+		return
+	}
+
+	render.Status(r, http.StatusOK)
+	render.PlainText(w, r, "")
 }
 
 func (mh *MetricHandler) UpdateMetricHandlerJSON(w http.ResponseWriter, r *http.Request) {

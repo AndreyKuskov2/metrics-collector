@@ -28,7 +28,7 @@ func main() {
 	if err != nil {
 		logger.Fatalf("failed to create repository: %v", err)
 	}
-	service := services.NewMetricService(stor)
+	service := services.NewMetricService(stor, logger)
 	handler := handlers.NewMetricHandler(service, logger)
 
 	metricRouter := router.GetRouter(logger, handler)
