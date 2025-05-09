@@ -1,24 +1,35 @@
 package services
 
 import (
+	"fmt"
+	"net/http"
+
 	"github.com/AndreyKuskov2/metrics-collector/internal/models"
 	"github.com/AndreyKuskov2/metrics-collector/internal/server/utils"
+	"github.com/sirupsen/logrus"
 )
 
 type IMetricService interface {
 	UpdateMetric(metric *models.Metrics) error
 	GetMetric(metricName string) (*models.Metrics, bool)
 	GetAllMetrics() (map[string]*models.Metrics, error)
+	Ping() error
 }
 
 type MetricService struct {
 	storageRepo IMetricService
+	logger      *logrus.Logger
 }
 
-func NewMetricService(storageRepo IMetricService) *MetricService {
+func NewMetricService(storageRepo IMetricService, logger *logrus.Logger) *MetricService {
 	return &MetricService{
 		storageRepo: storageRepo,
+		logger:      logger,
 	}
+}
+
+func (s *MetricService) Ping() error {
+	return s.storageRepo.Ping()
 }
 
 func (s *MetricService) UpdateMetric(requestMetric *models.Metrics) (*models.Metrics, error) {
@@ -69,4 +80,22 @@ func (s *MetricService) GetAllMetrics() (map[string]*models.Metrics, error) {
 		return nil, err
 	}
 	return metrics, nil
+}
+
+func (s *MetricService) UpdateBatchMetricsServ(metrics []models.Metrics, r *http.Request) error {
+	if len(metrics) == 0 {
+		return fmt.Errorf("empty metrics")
+	}
+
+	for _, metric := range metrics {
+		if err := metric.Bind(r); err != nil {
+			return err
+		}
+		_, err := s.UpdateMetric(&metric)
+		if err != nil {
+			return err
+		}
+	}
+
+	return nil
 }

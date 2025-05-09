@@ -65,3 +65,33 @@ func SendMetricsJSON(address string, metrics map[string]models.Metrics, logger *
 	}
 	return nil
 }
+
+func SendMetricsBatch(address string, metricsData map[string]models.Metrics, logger *logrus.Logger) error {
+	url := fmt.Sprintf("http://%s/update/", address)
+
+	jsonData, err := json.Marshal(metricsData)
+	if err != nil {
+		logger.Infof("Failed to marshal metrics: %v\n", err)
+		return err
+	}
+
+	ro := grequests.RequestOptions{
+		Headers: map[string]string{
+			"Content-Type":     "application/json",
+			"Content-Encoding": "gzip",
+		},
+		DisableCompression: false,
+		JSON:               jsonData,
+	}
+	resp, err := grequests.Post(url, &ro)
+	if err != nil {
+		logger.Infof("Failed to send metrics: %v", err)
+		return err
+	}
+
+	if resp.StatusCode != 200 {
+		logger.Infof("Failed to send metrics: status code %d", resp.StatusCode)
+		return err
+	}
+	return nil
+}
