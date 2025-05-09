@@ -3,11 +3,15 @@ package sender
 import (
 	"encoding/json"
 	"fmt"
+	"time"
 
 	"github.com/AndreyKuskov2/metrics-collector/internal/models"
 	"github.com/levigross/grequests"
 	"github.com/sirupsen/logrus"
 )
+
+const maxRetries = 3
+const retryDelay = 1 * time.Second
 
 func SendMetrics(address string, metrics map[string]models.Metrics, logger *logrus.Logger) error {
 	for metricName, metricData := range metrics {
@@ -22,14 +26,8 @@ func SendMetrics(address string, metrics map[string]models.Metrics, logger *logr
 				"Content-Type": "text/plain",
 			},
 		}
-		resp, err := grequests.Post(url, &ro)
-		if err != nil {
-			logger.Printf("Failed to send metric %s: %v\n", metricName, err)
-			continue
-		}
-
-		if resp.StatusCode != 200 {
-			logger.Printf("Failed to send metric %s: status code %d\n", metricName, resp.StatusCode)
+		if err := sendWithRetry(ro, url, logger); err != nil {
+			logger.Infof("Failed to send metric %s: %v\n", metricName, err)
 		}
 	}
 	return nil
@@ -53,14 +51,8 @@ func SendMetricsJSON(address string, metrics map[string]models.Metrics, logger *
 			DisableCompression: false,
 			JSON:               jsonData,
 		}
-		resp, err := grequests.Post(url, &ro)
-		if err != nil {
-			logger.Printf("Failed to send metric %s: %v\n", metricName, err)
-			continue
-		}
-
-		if resp.StatusCode != 200 {
-			logger.Printf("Failed to send metric %s: status code %d\n", metricName, resp.StatusCode)
+		if err := sendWithRetry(ro, url, logger); err != nil {
+			logger.Infof("Failed to send metric %s: %v\n", metricName, err)
 		}
 	}
 	return nil
@@ -83,15 +75,26 @@ func SendMetricsBatch(address string, metricsData map[string]models.Metrics, log
 		DisableCompression: false,
 		JSON:               jsonData,
 	}
-	resp, err := grequests.Post(url, &ro)
-	if err != nil {
-		logger.Infof("Failed to send metrics: %v", err)
-		return err
-	}
-
-	if resp.StatusCode != 200 {
-		logger.Infof("Failed to send metrics: status code %d", resp.StatusCode)
-		return err
+	if err := sendWithRetry(ro, url, logger); err != nil {
+		logger.Infof("Failed to send metrics: %v\n", err)
 	}
 	return nil
+}
+
+func sendWithRetry(ro grequests.RequestOptions, url string, logger *logrus.Logger) error {
+	delay := retryDelay
+	for i := 0; i < maxRetries; i++ {
+		resp, err := grequests.Post(url, &ro)
+		if err != nil {
+			logger.Infof("Failed to send request: %v\n", err)
+		} else if resp.StatusCode == 200 {
+			return nil
+		} else {
+			logger.Infof("Failed to send request: status code %d\n", resp.StatusCode)
+		}
+
+		time.Sleep(delay)
+		delay += 2 * time.Second
+	}
+	return fmt.Errorf("failed to send request after %d attempts", maxRetries)
 }

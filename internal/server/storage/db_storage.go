@@ -21,10 +21,18 @@ type DBStorage struct {
 	ctx context.Context
 }
 
+const maxRetries = 3
+const retryDelay = 1 * time.Second
+
 func NewDBStorage(cfg *config.ServerConfig, ctx context.Context) (*DBStorage, error) {
-	pool, err := pgxpool.New(context.Background(), cfg.DatabaseDSN)
-	if err != nil {
-		return nil, err
+	var pool *pgxpool.Pool
+	var err error
+
+	for i := 0; i < maxRetries; i++ {
+		pool, err = pgxpool.New(context.Background(), cfg.DatabaseDSN)
+		if err == nil {
+			break
+		}
 	}
 
 	err = pool.Ping(context.Background())
