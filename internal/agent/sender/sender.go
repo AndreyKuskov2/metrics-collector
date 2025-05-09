@@ -26,8 +26,14 @@ func SendMetrics(address string, metrics map[string]models.Metrics, logger *logr
 				"Content-Type": "text/plain",
 			},
 		}
-		if err := sendWithRetry(ro, url, logger); err != nil {
-			logger.Infof("Failed to send metric %s: %v\n", metricName, err)
+		resp, err := grequests.Post(url, &ro)
+		if err != nil {
+			logger.Printf("Failed to send metric %s: %v\n", metricName, err)
+			continue
+		}
+
+		if resp.StatusCode != 200 {
+			logger.Printf("Failed to send metric %s: status code %d\n", metricName, resp.StatusCode)
 		}
 	}
 	return nil
@@ -51,8 +57,14 @@ func SendMetricsJSON(address string, metrics map[string]models.Metrics, logger *
 			DisableCompression: false,
 			JSON:               jsonData,
 		}
-		if err := sendWithRetry(ro, url, logger); err != nil {
-			logger.Infof("Failed to send metric %s: %v\n", metricName, err)
+		resp, err := grequests.Post(url, &ro)
+		if err != nil {
+			logger.Printf("Failed to send metric %s: %v\n", metricName, err)
+			continue
+		}
+
+		if resp.StatusCode != 200 {
+			logger.Printf("Failed to send metric %s: status code %d\n", metricName, resp.StatusCode)
 		}
 	}
 	return nil
