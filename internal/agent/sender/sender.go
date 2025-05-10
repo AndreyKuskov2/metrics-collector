@@ -78,38 +78,6 @@ var gzipNewWriter = func(w io.Writer) *gzip.Writer {
 }
 
 func SendMetricsBatch(cfg *config.AgentConfig, metricsData map[string]models.Metrics, logger *logrus.Logger) error {
-	// url := fmt.Sprintf("http://%s/updates/", cfg.Address)
-
-	// var requestBody []models.Metrics
-	// for _, metric := range metricsData {
-	// 	requestBody = append(requestBody, metric)
-	// }
-
-	// jsonData, err := json.Marshal(requestBody)
-	// if err != nil {
-	// 	logger.Infof("Failed to marshal metrics: %v", err)
-	// 	return err
-	// }
-
-	// ro := grequests.RequestOptions{
-	// 	Headers: map[string]string{
-	// 		"Content-Type":     "application/json",
-	// 		"Content-Encoding": "gzip",
-	// 	},
-	// 	DisableCompression: false,
-	// 	JSON:               jsonData,
-	// }
-	// if err := sendWithRetry(cfg, ro, url, logger); err != nil {
-	// 	logger.Infof("Failed to send metrics: %v", err)
-	// }
-	// return nil
-
-	maxRetries := 3
-	retryDelays := []time.Duration{1 * time.Second, 3 * time.Second, 5 * time.Second}
-
-	// metrics := mc.metricsService.GetMetrics()
-	// dtoMetrics := models.ConvertMetricsListToDTO(metrics.MetricList)
-
 	url := fmt.Sprintf("http://%s/updates/", cfg.Address)
 
 	var requestBody []models.Metrics
@@ -139,28 +107,29 @@ func SendMetricsBatch(cfg *config.AgentConfig, metricsData map[string]models.Met
 		return err
 	}
 
-	req, _ := http.NewRequest("POST", url, &buf)
-
-	req.Header.Set("Content-Type", "application/json")
-	req.Header.Set("Content-Encoding", "gzip")
-
-	httpClient := &http.Client{
-		Timeout: 100 * time.Millisecond,
-	}
-
 	var response *http.Response
-	for trying := 0; trying <= maxRetries; trying++ {
+	for trying := 0; trying <= cfg.MaxRetries; trying++ {
+		req, _ := http.NewRequest("POST", url, &buf)
+
+		req.Header.Set("Content-Type", "application/json")
+		req.Header.Set("Content-Encoding", "gzip")
+
+		httpClient := &http.Client{
+			Timeout: 100 * time.Millisecond,
+		}
+
 		response, err = httpClient.Do(req)
 		if err != nil {
-			if trying < maxRetries && strings.Contains(err.Error(), "connection refused") {
+			if trying < cfg.MaxRetries && strings.Contains(err.Error(), "connection refused") {
 				logger.Printf("Bad %v trying sending metric: %v. BODY: %v\n", trying+1, err, requestBody)
-				time.Sleep(retryDelays[trying])
+				time.Sleep(cfg.RetryDelay)
 				continue
 			}
 			logger.Printf("Error sending metric: %v. BODY: %v\n", err, requestBody)
 			return err
 		}
 		response.Body.Close()
+		break
 	}
 
 	if response != nil {

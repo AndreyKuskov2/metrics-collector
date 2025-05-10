@@ -2,7 +2,6 @@ package middlewares
 
 import (
 	"compress/gzip"
-	"fmt"
 	"net/http"
 	"strings"
 )
@@ -21,7 +20,6 @@ func GzipMiddleware(h http.Handler) http.Handler {
 		if strings.Contains(r.Header.Get("Content-Encoding"), "gzip") {
 			gzReader, err := gzip.NewReader(r.Body)
 			if err != nil {
-				fmt.Println(err, "1")
 				http.Error(w, "Invalid gzip body", http.StatusInternalServerError)
 				return
 			}

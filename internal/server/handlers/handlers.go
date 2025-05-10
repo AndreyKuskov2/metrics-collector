@@ -168,6 +168,7 @@ func (mh *MetricHandler) UpdateMetricHandlerJSON(w http.ResponseWriter, r *http.
 
 	metric, err := mh.services.UpdateMetric(&requestMetric)
 	if err != nil {
+		mh.logger.Infof("cannot update metric: %v", err)
 		render.Status(r, http.StatusInternalServerError)
 		render.PlainText(w, r, err.Error())
 		return

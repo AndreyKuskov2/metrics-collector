@@ -84,7 +84,13 @@ func (s *DBStorage) GetMetric(metricName string) (*models.Metrics, bool) {
 }
 
 func (s *DBStorage) UpdateMetric(metric *models.Metrics) error {
-	_, err := s.DB.Exec(s.ctx, insertMetrics, metric.MType, metric.ID, metric.Value, metric.Delta, time.Now())
+	var err error
+
+	if metric.MType == utils.COUNTER {
+		_, err = s.DB.Exec(s.ctx, insertCounterMetrics, metric.MType, metric.ID, metric.Delta, time.Now())
+	} else {
+		_, err = s.DB.Exec(s.ctx, insertGaugeMetrics, metric.MType, metric.ID, metric.Value, time.Now())
+	}
 	if err != nil {
 		return fmt.Errorf("failed to insert metric: %w", err)
 	}
