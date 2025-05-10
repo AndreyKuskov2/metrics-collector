@@ -110,7 +110,7 @@ func (mh *MetricHandler) GetMetricHandler(w http.ResponseWriter, r *http.Request
 		value := fmt.Sprintf("%v", *metric.Delta)
 		render.PlainText(w, r, value)
 	case utils.GAUGE:
-		mh.logger.Infof("metric id: %s, metric value: %d", metricName, *metric.Value)
+		mh.logger.Infof("metric id: %s, metric value: %b", metricName, *metric.Value)
 		value := fmt.Sprintf("%v", *metric.Value)
 		render.PlainText(w, r, value)
 	}
