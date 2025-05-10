@@ -1,8 +1,13 @@
 package sender
 
 import (
+	"bytes"
+	"compress/gzip"
 	"encoding/json"
 	"fmt"
+	"io"
+	"net/http"
+	"strings"
 	"time"
 
 	"github.com/AndreyKuskov2/metrics-collector/internal/agent/config"
@@ -68,7 +73,43 @@ func SendMetricsJSON(address string, metrics map[string]models.Metrics, logger *
 	return nil
 }
 
+var gzipNewWriter = func(w io.Writer) *gzip.Writer {
+	return gzip.NewWriter(w)
+}
+
 func SendMetricsBatch(cfg *config.AgentConfig, metricsData map[string]models.Metrics, logger *logrus.Logger) error {
+	// url := fmt.Sprintf("http://%s/updates/", cfg.Address)
+
+	// var requestBody []models.Metrics
+	// for _, metric := range metricsData {
+	// 	requestBody = append(requestBody, metric)
+	// }
+
+	// jsonData, err := json.Marshal(requestBody)
+	// if err != nil {
+	// 	logger.Infof("Failed to marshal metrics: %v", err)
+	// 	return err
+	// }
+
+	// ro := grequests.RequestOptions{
+	// 	Headers: map[string]string{
+	// 		"Content-Type":     "application/json",
+	// 		"Content-Encoding": "gzip",
+	// 	},
+	// 	DisableCompression: false,
+	// 	JSON:               jsonData,
+	// }
+	// if err := sendWithRetry(cfg, ro, url, logger); err != nil {
+	// 	logger.Infof("Failed to send metrics: %v", err)
+	// }
+	// return nil
+
+	maxRetries := 3
+	retryDelays := []time.Duration{1 * time.Second, 3 * time.Second, 5 * time.Second}
+
+	// metrics := mc.metricsService.GetMetrics()
+	// dtoMetrics := models.ConvertMetricsListToDTO(metrics.MetricList)
+
 	url := fmt.Sprintf("http://%s/updates/", cfg.Address)
 
 	var requestBody []models.Metrics
@@ -76,22 +117,58 @@ func SendMetricsBatch(cfg *config.AgentConfig, metricsData map[string]models.Met
 		requestBody = append(requestBody, metric)
 	}
 
-	jsonData, err := json.Marshal(requestBody)
+	body, err := json.Marshal(requestBody)
 	if err != nil {
-		logger.Infof("Failed to marshal metrics: %v", err)
+		logger.Println("Error json Encode metric data")
 		return err
 	}
 
-	ro := grequests.RequestOptions{
-		Headers: map[string]string{
-			"Content-Type":     "application/json",
-			"Content-Encoding": "gzip",
-		},
-		DisableCompression: false,
-		JSON:               jsonData,
+	var buf bytes.Buffer
+
+	gz := gzipNewWriter(&buf)
+
+	_, err = gz.Write(body)
+	if err != nil {
+		logger.Println("Error compressing metric data")
+		return err
 	}
-	if err := sendWithRetry(cfg, ro, url, logger); err != nil {
-		logger.Infof("Failed to send metrics: %v", err)
+
+	err = gz.Close()
+	if err != nil {
+		logger.Println("Error close gzip compressor")
+		return err
+	}
+
+	req, _ := http.NewRequest("POST", url, &buf)
+
+	req.Header.Set("Content-Type", "application/json")
+	req.Header.Set("Content-Encoding", "gzip")
+
+	httpClient := &http.Client{
+		Timeout: 100 * time.Millisecond,
+	}
+
+	var response *http.Response
+	for trying := 0; trying <= maxRetries; trying++ {
+		response, err = httpClient.Do(req)
+		if err != nil {
+			if trying < maxRetries && strings.Contains(err.Error(), "connection refused") {
+				logger.Printf("Bad %v trying sending metric: %v. BODY: %v\n", trying+1, err, requestBody)
+				time.Sleep(retryDelays[trying])
+				continue
+			}
+			logger.Printf("Error sending metric: %v. BODY: %v\n", err, requestBody)
+			return err
+		}
+		response.Body.Close()
+	}
+
+	if response != nil {
+		if response.StatusCode == http.StatusOK {
+			logger.Printf("Successfully sent metric: %v\n", requestBody)
+		} else {
+			logger.Printf("Failed to send metric: %v, status code: %d\n", requestBody, response.StatusCode)
+		}
 	}
 	return nil
 }
