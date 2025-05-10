@@ -7,6 +7,7 @@ import (
 
 	"github.com/AndreyKuskov2/metrics-collector/internal/models"
 	"github.com/AndreyKuskov2/metrics-collector/internal/server/config"
+	"github.com/AndreyKuskov2/metrics-collector/internal/server/utils"
 
 	"github.com/jackc/pgx/v5/pgxpool"
 )
@@ -96,8 +97,33 @@ func (s *DBStorage) UpdateBatchMetrics(metrics []models.Metrics) error {
 		return fmt.Errorf("cannot create transaction")
 	}
 
-	for _, metric := range metrics {
-		_, err := tx.Exec(s.ctx, insertMetrics, metric.MType, metric.ID, metric.Value, metric.Delta, time.Now())
+	counterMap := make(map[string]int64)
+	var gauges []models.Metrics
+
+	for _, v := range metrics {
+		switch v.MType {
+		case utils.COUNTER:
+			if v.Delta != nil {
+				counterMap[v.ID] += *v.Delta
+			}
+		case utils.GAUGE:
+			gauges = append(gauges, v)
+		}
+	}
+
+	for k, v := range counterMap {
+		_, err = tx.Exec(s.ctx, insertCounterMetrics, utils.COUNTER, k, v, time.Now())
+		if err != nil {
+			err := tx.Rollback(s.ctx)
+			if err != nil {
+				return err
+			}
+			return err
+		}
+	}
+
+	for _, v := range gauges {
+		_, err = tx.Exec(s.ctx, insertGaugeMetrics, utils.GAUGE, v.ID, v.Value, time.Now())
 		if err != nil {
 			err := tx.Rollback(s.ctx)
 			if err != nil {

@@ -94,21 +94,14 @@ func (s *MetricService) UpdateBatchMetricsServ(metrics []models.Metrics, r *http
 		return fmt.Errorf("empty metrics")
 	}
 
-	var resultMetrics []models.Metrics
+	// Валидация данных
 	for _, metric := range metrics {
 		if err := metric.Bind(r); err != nil {
 			return err
 		}
-		m, err := s.localUpdateMetric(&metric)
-		if err != nil {
-			return err
-		}
-		resultMetrics = append(resultMetrics, *m)
 	}
 
-	s.logger.Infof("local update metrics: %v", resultMetrics)
-
-	if err := s.storageRepo.UpdateBatchMetrics(resultMetrics); err != nil {
+	if err := s.storageRepo.UpdateBatchMetrics(metrics); err != nil {
 		return fmt.Errorf("failed to update received metrics: %s", err)
 	}
 

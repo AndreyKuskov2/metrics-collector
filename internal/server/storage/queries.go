@@ -7,11 +7,17 @@ const (
 		name TEXT NOT NULL,
 		value DOUBLE PRECISION,
 		delta BIGINT,
-		timestamp TIMESTAMP NOT NULL
+		timestamp TIMESTAMP NOT NULL,
+
+		CONSTRAINT metrics_name_type_unique UNIQUE (name, type)
 	);
 	CREATE INDEX IF NOT EXISTS idx_metrics_name ON metrics (name);`
 	getMetricByName = `SELECT name, type, value, delta FROM metrics WHERE name = $1 ORDER BY timestamp DESC LIMIT 1;`
 	getAllMetrics   = `SELECT name, type, value, delta FROM metrics;`
 	insertMetrics   = `INSERT INTO metrics (type, name, value, delta, timestamp)
 						VALUES ($1, $2, $3, $4, $5)`
+	insertCounterMetrics = `INSERT INTO metrics (type, name, delta, timestamp)
+						VALUES ($1, $2, $3, $4) ON CONFLICT (name, type) DO UPDATE SET delta = $3`
+	insertGaugeMetrics = `INSERT INTO metrics (type, name, value, timestamp) 
+						VALUES ($1, $2, $3, $4) ON CONFLICT (name, type) DO UPDATE SET value = $3`
 )
