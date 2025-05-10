@@ -192,6 +192,7 @@ func (mh *MetricHandler) GetMetricHandlerJSON(w http.ResponseWriter, r *http.Req
 	}
 
 	if responseMetric, ok := mh.services.GetMetric(metric.ID); ok {
+		mh.logger.Infof("response metric: %v", responseMetric)
 		render.Status(r, http.StatusOK)
 		render.JSON(w, r, responseMetric)
 		return
