@@ -69,11 +69,11 @@ func SendMetricsJSON(address string, metrics map[string]models.Metrics, logger *
 }
 
 func SendMetricsBatch(cfg *config.AgentConfig, metricsData map[string]models.Metrics, logger *logrus.Logger) error {
-	url := fmt.Sprintf("http://%s/update/", cfg.Address)
+	url := fmt.Sprintf("http://%s/updates/", cfg.Address)
 
 	jsonData, err := json.Marshal(metricsData)
 	if err != nil {
-		logger.Infof("Failed to marshal metrics: %v\n", err)
+		logger.Infof("Failed to marshal metrics: %v", err)
 		return err
 	}
 
@@ -86,7 +86,7 @@ func SendMetricsBatch(cfg *config.AgentConfig, metricsData map[string]models.Met
 		JSON:               jsonData,
 	}
 	if err := sendWithRetry(cfg, ro, url, logger); err != nil {
-		logger.Infof("Failed to send metrics: %v\n", err)
+		logger.Infof("Failed to send metrics: %v", err)
 	}
 	return nil
 }
@@ -96,11 +96,11 @@ func sendWithRetry(cfg *config.AgentConfig, ro grequests.RequestOptions, url str
 	for i := 0; i < cfg.MaxRetries; i++ {
 		resp, err := grequests.Post(url, &ro)
 		if err != nil {
-			logger.Infof("Failed to send request: %v\n", err)
+			logger.Infof("Failed to send request: %v", err)
 		} else if resp.StatusCode == 200 {
 			return nil
 		} else {
-			logger.Infof("Failed to send request: status code %d\n", resp.StatusCode)
+			logger.Infof("Failed to send request: status code %d", resp.StatusCode)
 		}
 
 		time.Sleep(delay)
