@@ -6,7 +6,7 @@ import (
 
 var Log *logrus.Logger
 
-func NewLogger(logPath string) *logrus.Logger {
+func NewLogger() *logrus.Logger {
 	if Log != nil {
 		return Log
 	}

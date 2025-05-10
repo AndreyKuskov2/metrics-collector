@@ -74,6 +74,10 @@ func (s *FileMemStorage) OpenFile(filename string) error {
 	return nil
 }
 
+func (s *FileMemStorage) UpdateBatchMetrics(metrics []models.Metrics) error {
+	return nil
+}
+
 func (s *FileMemStorage) SaveMemStorageToFile() error {
 	s.mu.Lock()
 	defer s.mu.Unlock()

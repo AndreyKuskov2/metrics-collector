@@ -5,13 +5,11 @@ import (
 	"fmt"
 	"time"
 
+	"github.com/AndreyKuskov2/metrics-collector/internal/agent/config"
 	"github.com/AndreyKuskov2/metrics-collector/internal/models"
 	"github.com/levigross/grequests"
 	"github.com/sirupsen/logrus"
 )
-
-const maxRetries = 3
-const retryDelay = 1 * time.Second
 
 func SendMetrics(address string, metrics map[string]models.Metrics, logger *logrus.Logger) error {
 	for metricName, metricData := range metrics {
@@ -70,8 +68,8 @@ func SendMetricsJSON(address string, metrics map[string]models.Metrics, logger *
 	return nil
 }
 
-func SendMetricsBatch(address string, metricsData map[string]models.Metrics, logger *logrus.Logger) error {
-	url := fmt.Sprintf("http://%s/update/", address)
+func SendMetricsBatch(cfg *config.AgentConfig, metricsData map[string]models.Metrics, logger *logrus.Logger) error {
+	url := fmt.Sprintf("http://%s/update/", cfg.Address)
 
 	jsonData, err := json.Marshal(metricsData)
 	if err != nil {
@@ -87,15 +85,15 @@ func SendMetricsBatch(address string, metricsData map[string]models.Metrics, log
 		DisableCompression: false,
 		JSON:               jsonData,
 	}
-	if err := sendWithRetry(ro, url, logger); err != nil {
+	if err := sendWithRetry(cfg, ro, url, logger); err != nil {
 		logger.Infof("Failed to send metrics: %v\n", err)
 	}
 	return nil
 }
 
-func sendWithRetry(ro grequests.RequestOptions, url string, logger *logrus.Logger) error {
-	delay := retryDelay
-	for i := 0; i < maxRetries; i++ {
+func sendWithRetry(cfg *config.AgentConfig, ro grequests.RequestOptions, url string, logger *logrus.Logger) error {
+	delay := cfg.RetryDelay
+	for i := 0; i < cfg.MaxRetries; i++ {
 		resp, err := grequests.Post(url, &ro)
 		if err != nil {
 			logger.Infof("Failed to send request: %v\n", err)
@@ -108,5 +106,5 @@ func sendWithRetry(ro grequests.RequestOptions, url string, logger *logrus.Logge
 		time.Sleep(delay)
 		delay += 2 * time.Second
 	}
-	return fmt.Errorf("failed to send request after %d attempts", maxRetries)
+	return fmt.Errorf("failed to send request after %d attempts", cfg.MaxRetries)
 }

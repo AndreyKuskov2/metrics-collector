@@ -17,7 +17,7 @@ import (
 )
 
 func main() {
-	logger := logger.NewLogger("./logs/server.log")
+	logger := logger.NewLogger()
 	cfg, err := config.NewConfig()
 	if err != nil {
 		logger.Info("failed to get config")

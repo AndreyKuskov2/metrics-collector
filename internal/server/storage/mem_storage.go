@@ -14,6 +14,10 @@ func NewMemStorage() *MemStorage {
 	}
 }
 
+func (s *MemStorage) UpdateBatchMetrics(metrics []models.Metrics) error {
+	return nil
+}
+
 func (s *MemStorage) Ping() error {
 	return nil
 }

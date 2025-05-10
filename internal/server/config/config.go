@@ -4,6 +4,7 @@ import (
 	"fmt"
 	"log"
 	"strings"
+	"time"
 
 	"github.com/caarlos0/env"
 	"github.com/spf13/pflag"
@@ -15,6 +16,8 @@ type ServerConfig struct {
 	FileStoragePath string `env:"FILE_STORAGE_PATH"`
 	Restore         bool   `env:"RESTORE"`
 	DatabaseDSN     string `env:"DATABASE_DSN"`
+	MaxRetries      int
+	RetryDelay      time.Duration
 }
 
 func NewConfig() (*ServerConfig, error) {
@@ -37,6 +40,9 @@ func NewConfig() (*ServerConfig, error) {
 	if err := env.Parse(&serverConfig); err != nil {
 		return nil, fmt.Errorf("failed to get environment variable value")
 	}
+
+	serverConfig.MaxRetries = 3
+	serverConfig.RetryDelay = 1 * time.Second
 
 	return &serverConfig, nil
 }

@@ -14,6 +14,7 @@ type IMetricService interface {
 	GetMetric(metricName string) (*models.Metrics, bool)
 	GetAllMetrics() (map[string]*models.Metrics, error)
 	Ping() error
+	UpdateBatchMetrics(metrics []models.Metrics) error
 }
 
 type MetricService struct {
@@ -32,8 +33,9 @@ func (s *MetricService) Ping() error {
 	return s.storageRepo.Ping()
 }
 
-func (s *MetricService) UpdateMetric(requestMetric *models.Metrics) (*models.Metrics, error) {
+func (s *MetricService) localUpdateMetric(requestMetric *models.Metrics) (*models.Metrics, error) {
 	var metric *models.Metrics
+
 	switch requestMetric.MType {
 	case utils.COUNTER:
 		oldMetric, ok := s.storageRepo.GetMetric(requestMetric.ID)
@@ -58,6 +60,11 @@ func (s *MetricService) UpdateMetric(requestMetric *models.Metrics) (*models.Met
 			Value: requestMetric.Value,
 		}
 	}
+	return metric, nil
+}
+
+func (s *MetricService) UpdateMetric(requestMetric *models.Metrics) (*models.Metrics, error) {
+	metric, _ := s.localUpdateMetric(requestMetric)
 
 	if err := s.storageRepo.UpdateMetric(metric); err != nil {
 		return nil, err
@@ -87,14 +94,20 @@ func (s *MetricService) UpdateBatchMetricsServ(metrics []models.Metrics, r *http
 		return fmt.Errorf("empty metrics")
 	}
 
+	var resultMetrics []models.Metrics
 	for _, metric := range metrics {
 		if err := metric.Bind(r); err != nil {
 			return err
 		}
-		_, err := s.UpdateMetric(&metric)
+		m, err := s.localUpdateMetric(&metric)
 		if err != nil {
 			return err
 		}
+		resultMetrics = append(resultMetrics, *m)
+	}
+
+	if err := s.storageRepo.UpdateBatchMetrics(resultMetrics); err != nil {
+		return fmt.Errorf("failed to update received metrics: %s", err)
 	}
 
 	return nil

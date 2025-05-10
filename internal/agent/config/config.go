@@ -1,24 +1,29 @@
 package config
 
 import (
+	"fmt"
 	"log"
-	"os"
-	"strconv"
 	"strings"
+	"time"
 
+	"github.com/caarlos0/env"
 	"github.com/spf13/pflag"
 )
 
-var (
-	address        string
-	pollInterval   int
-	reportInterval int
-)
+type AgentConfig struct {
+	Address        string `env:"ADDRESS"`
+	ReportInterval int    `env:"REPORT_INTERVAL"`
+	PollInterval   int    `env:"POLL_INTERVAL"`
+	MaxRetries     int
+	RetryDelay     time.Duration
+}
 
-func init() {
-	pflag.StringVarP(&address, "address", "a", "localhost:8080", "server address")
-	pflag.IntVarP(&pollInterval, "pollInterval", "p", 2, "poll interval in seconds")
-	pflag.IntVarP(&reportInterval, "reportInterval", "r", 10, "report interval in seconds")
+func NewConfig() (*AgentConfig, error) {
+	var agentConfig AgentConfig
+
+	pflag.StringVarP(&agentConfig.Address, "address", "a", "localhost:8080", "server address")
+	pflag.IntVarP(&agentConfig.PollInterval, "pollInterval", "p", 2, "poll interval in seconds")
+	pflag.IntVarP(&agentConfig.ReportInterval, "reportInterval", "r", 10, "report interval in seconds")
 
 	pflag.Parse()
 
@@ -27,35 +32,13 @@ func init() {
 			log.Fatalf("Unknown flag: %v", arg)
 		}
 	}
-}
 
-type AgentConfig struct {
-	Address        string
-	ReportInterval int
-	PollInterval   int
-}
+	if err := env.Parse(&agentConfig); err != nil {
+		return nil, fmt.Errorf("failed to get environment variable value")
+	}
 
-func NewConfig() *AgentConfig {
-	var err error
+	agentConfig.MaxRetries = 3
+	agentConfig.RetryDelay = 1 * time.Second
 
-	if envRunAddr := os.Getenv("ADDRESS"); envRunAddr != "" {
-		address = envRunAddr
-	}
-	if envReportInterval := os.Getenv("REPORT_INTERVAL"); envReportInterval != "" {
-		reportInterval, err = strconv.Atoi(envReportInterval)
-		if err != nil {
-			log.Fatalf("failed to convert reportInterval value to type int")
-		}
-	}
-	if envPollInterval := os.Getenv("POLL_INTERVAL"); envPollInterval != "" {
-		pollInterval, err = strconv.Atoi(envPollInterval)
-		if err != nil {
-			log.Fatalf("failed to convert pollInterval value to type int")
-		}
-	}
-	return &AgentConfig{
-		Address:        address,
-		ReportInterval: reportInterval,
-		PollInterval:   pollInterval,
-	}
+	return &agentConfig, nil
 }

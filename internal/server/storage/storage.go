@@ -13,6 +13,7 @@ type Storager interface {
 	GetMetric(metricName string) (*models.Metrics, bool)
 	UpdateMetric(metric *models.Metrics) error
 	Ping() error
+	UpdateBatchMetrics(metrics []models.Metrics) error
 }
 
 func NewStorage(ctx context.Context, cfg *config.ServerConfig, logger *logrus.Logger) (Storager, error) {

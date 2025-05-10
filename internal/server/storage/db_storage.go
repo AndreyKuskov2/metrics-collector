@@ -8,11 +8,6 @@ import (
 	"github.com/AndreyKuskov2/metrics-collector/internal/models"
 	"github.com/AndreyKuskov2/metrics-collector/internal/server/config"
 
-	// _ "github.com/jackc/pgx/v5"
-	// _ "github.com/lib/pq"
-
-	// "github.com/jackc/pgx/stdlib"
-	// "github.com/jackc/pgx/stdlib"
 	"github.com/jackc/pgx/v5/pgxpool"
 )
 
@@ -21,14 +16,11 @@ type DBStorage struct {
 	ctx context.Context
 }
 
-const maxRetries = 3
-const retryDelay = 1 * time.Second
-
 func NewDBStorage(cfg *config.ServerConfig, ctx context.Context) (*DBStorage, error) {
 	var pool *pgxpool.Pool
 	var err error
 
-	for i := 0; i < maxRetries; i++ {
+	for i := 0; i < cfg.MaxRetries; i++ {
 		pool, err = pgxpool.New(context.Background(), cfg.DatabaseDSN)
 		if err == nil {
 			break
@@ -95,5 +87,30 @@ func (s *DBStorage) UpdateMetric(metric *models.Metrics) error {
 	if err != nil {
 		return fmt.Errorf("failed to insert metric: %w", err)
 	}
+	return nil
+}
+
+func (s *DBStorage) UpdateBatchMetrics(metrics []models.Metrics) error {
+	tx, err := s.DB.Begin(s.ctx)
+	if err != nil {
+		return fmt.Errorf("cannot create transaction")
+	}
+
+	for _, metric := range metrics {
+		_, err := tx.Exec(s.ctx, insertMetrics, metric.MType, metric.ID, metric.Value, metric.Delta, time.Now())
+		if err != nil {
+			err := tx.Rollback(s.ctx)
+			if err != nil {
+				return err
+			}
+			return err
+		}
+	}
+
+	err = tx.Commit(s.ctx)
+	if err != nil {
+		return err
+	}
+
 	return nil
 }
