@@ -106,6 +106,8 @@ func (s *MetricService) UpdateBatchMetricsServ(metrics []models.Metrics, r *http
 		resultMetrics = append(resultMetrics, *m)
 	}
 
+	s.logger.Infof("local update metrics: %v", resultMetrics)
+
 	if err := s.storageRepo.UpdateBatchMetrics(resultMetrics); err != nil {
 		return fmt.Errorf("failed to update received metrics: %s", err)
 	}

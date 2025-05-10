@@ -142,6 +142,8 @@ func (mh *MetricHandler) UpdateManyMetricsHandler(w http.ResponseWriter, r *http
 		return
 	}
 
+	mh.logger.Infof("request metrics: %v", requestMetrics)
+
 	if err := mh.services.UpdateBatchMetricsServ(requestMetrics, r); err != nil {
 		mh.logger.Infof("Failed to update metrics: %v", err)
 		render.Status(r, http.StatusInternalServerError)
