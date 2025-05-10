@@ -71,7 +71,12 @@ func SendMetricsJSON(address string, metrics map[string]models.Metrics, logger *
 func SendMetricsBatch(cfg *config.AgentConfig, metricsData map[string]models.Metrics, logger *logrus.Logger) error {
 	url := fmt.Sprintf("http://%s/updates/", cfg.Address)
 
-	jsonData, err := json.Marshal(metricsData)
+	var requestBody []models.Metrics
+	for _, metric := range metricsData {
+		requestBody = append(requestBody, metric)
+	}
+
+	jsonData, err := json.Marshal(requestBody)
 	if err != nil {
 		logger.Infof("Failed to marshal metrics: %v", err)
 		return err
