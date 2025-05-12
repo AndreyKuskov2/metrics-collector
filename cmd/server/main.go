@@ -17,40 +17,36 @@ import (
 )
 
 func main() {
-	logger := logger.NewLogger("./logs/server.log")
-	c, err := config.NewConfig()
+	logger := logger.NewLogger()
+	cfg, err := config.NewConfig()
 	if err != nil {
 		logger.Info("failed to get config")
 		return
 	}
 
-	stor := storage.NewStorage()
-	service := services.NewMetricService(stor)
-	handler := handlers.NewMetricHandler(service)
+	stor, err := storage.NewStorage(context.Background(), cfg, logger)
+	if err != nil {
+		logger.Fatalf("failed to create repository: %v", err)
+	}
+	service := services.NewMetricService(stor, logger)
+	handler := handlers.NewMetricHandler(service, logger)
 
 	metricRouter := router.GetRouter(logger, handler)
-
-	storage.StartFileStorageLogic(c, stor, logger)
 
 	stop := make(chan os.Signal, 1)
 	signal.Notify(stop, syscall.SIGINT, syscall.SIGTERM)
 
 	go func() {
-		logger.Printf("Start web-server on %s", c.Address)
-		if err := http.ListenAndServe(c.Address, metricRouter); err != nil {
+		logger.Infof("Start web-server on %s", cfg.Address)
+		if err := http.ListenAndServe(cfg.Address, metricRouter); err != nil {
 			logger.Fatalf("Failed to start server: %v", err)
 		}
 	}()
 
 	<-stop
 
-	// Создание контекста с тайм-аутом для завершения работы сервера
 	_, cancel := context.WithTimeout(context.Background(), 5*time.Second)
 	defer cancel()
 
-	stor.SaveMemStorageToFile()
-	stor.CloseFile()
-  
-	// Логирование завершения работы сервера
 	logger.Info("Shutting down server...")
 }

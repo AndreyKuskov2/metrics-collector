@@ -1,33 +1,33 @@
 package config
 
 import (
+	"fmt"
 	"log"
-	"os"
-	"strconv"
 	"strings"
+	"time"
 
+	"github.com/caarlos0/env"
 	"github.com/spf13/pflag"
 )
 
 type ServerConfig struct {
-	Address         string
-	StoreInterval   int
-	FileStoragePath string
-	Restore         bool
+	Address         string `env:"ADDRESS"`
+	StoreInterval   int    `env:"STORE_INTERVAL"`
+	FileStoragePath string `env:"FILE_STORAGE_PATH"`
+	Restore         bool   `env:"RESTORE"`
+	DatabaseDSN     string `env:"DATABASE_DSN"`
+	MaxRetries      int
+	RetryDelay      time.Duration
 }
 
-var (
-	address         string
-	storeInterval   int
-	fileStoragePath string
-	restore         bool
-)
+func NewConfig() (*ServerConfig, error) {
+	var serverConfig ServerConfig
 
-func init() {
-	pflag.StringVarP(&address, "address", "a", "localhost:8080", "server address")
-	pflag.IntVarP(&storeInterval, "store-interval", "i", 300, "time interval in seconds")
-	pflag.StringVarP(&fileStoragePath, "file-storage-path", "f", "storage.json", "file storage path")
-	pflag.BoolVarP(&restore, "restore", "r", true, "restore from file")
+	pflag.StringVarP(&serverConfig.Address, "address", "a", "localhost:8080", "server address")
+	pflag.IntVarP(&serverConfig.StoreInterval, "store-interval", "i", 300, "time interval in seconds")
+	pflag.StringVarP(&serverConfig.FileStoragePath, "file-storage-path", "f", "storage.json", "file storage path")
+	pflag.BoolVarP(&serverConfig.Restore, "restore", "r", true, "restore from file")
+	pflag.StringVarP(&serverConfig.DatabaseDSN, "database-dsn", "d", "", "database url")
 
 	pflag.Parse()
 
@@ -36,33 +36,13 @@ func init() {
 			log.Fatalf("Unknown flag: %v", arg)
 		}
 	}
-}
 
-func NewConfig() (*ServerConfig, error) {
-	var err error
+	if err := env.Parse(&serverConfig); err != nil {
+		return nil, fmt.Errorf("failed to get environment variable value")
+	}
 
-	if envRunAddr := os.Getenv("ADDRESS"); envRunAddr != "" {
-		address = envRunAddr
-	}
-	if envStoreInterval := os.Getenv("STORE_INTERVAL"); envStoreInterval != "" {
-		storeInterval, err = strconv.Atoi(envStoreInterval)
-		if err != nil {
-			return nil, err
-		}
-	}
-	if envFileStoragePath := os.Getenv("FILE_STORAGE_PATH"); envFileStoragePath != "" {
-		fileStoragePath = envFileStoragePath
-	}
-	if envRestore := os.Getenv("RESTORE"); envRestore != "" {
-		restore, err = strconv.ParseBool(envRestore)
-		if err != nil {
-			return nil, err
-		}
-	}
-	return &ServerConfig{
-		Address:         address,
-		StoreInterval:   storeInterval,
-		FileStoragePath: fileStoragePath,
-		Restore:         restore,
-	}, nil
+	serverConfig.MaxRetries = 3
+	serverConfig.RetryDelay = 1 * time.Second
+
+	return &serverConfig, nil
 }

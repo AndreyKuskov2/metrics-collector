@@ -16,11 +16,15 @@ var (
 )
 
 func main() {
-	c := config.NewConfig()
-	logger := logger.NewLogger("./logs/agent.log")
+	logger := logger.NewLogger()
+	cfg, err := config.NewConfig()
+	if err != nil {
+		logger.Info("failed to get config")
+		return
+	}
 
-	tickerPoll := time.NewTicker(time.Duration(c.PollInterval) * time.Second)
-	tickerReport := time.NewTicker(time.Duration(c.ReportInterval) * time.Second)
+	tickerPoll := time.NewTicker(time.Duration(cfg.PollInterval) * time.Second)
+	tickerReport := time.NewTicker(time.Duration(cfg.ReportInterval) * time.Second)
 
 	for {
 		select {
@@ -28,8 +32,9 @@ func main() {
 			pollCount++
 			metrics = collector.CollectMetrics(pollCount)
 		case <-tickerReport.C:
-			sender.SendMetrics(c.Address, metrics, logger)
-			sender.SendMetricsJSON(c.Address, metrics, logger)
+			sender.SendMetrics(cfg.Address, metrics, logger)
+			sender.SendMetricsJSON(cfg.Address, metrics, logger)
+			sender.SendMetricsBatch(cfg, metrics, logger)
 			logger.Info("Sent metrics")
 		}
 	}

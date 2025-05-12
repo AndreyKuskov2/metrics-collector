@@ -24,5 +24,9 @@ func GetRouter(logger *logrus.Logger, h *handlers.MetricHandler) http.Handler {
 
 	r.With(middlewares.GzipMiddleware).Get("/", h.GetMetricsHandler)
 
+	r.Get("/ping", h.Ping)
+
+	r.With(middlewares.GzipMiddleware).Post("/updates/", h.UpdateManyMetricsHandler)
+
 	return r
 }
