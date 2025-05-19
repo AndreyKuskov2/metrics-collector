@@ -109,10 +109,15 @@ func SendMetricsBatch(cfg *config.AgentConfig, metricsData map[string]models.Met
 
 	var response *http.Response
 	for trying := 0; trying <= cfg.MaxRetries; trying++ {
+		var hash string
+		if cfg.SecretKey != "" {
+			hash = calculateHash(body, []byte(cfg.SecretKey))
+		}
 		req, _ := http.NewRequest("POST", url, &buf)
 
 		req.Header.Set("Content-Type", "application/json")
 		req.Header.Set("Content-Encoding", "gzip")
+		req.Header.Set("HashSHA256", hash)
 
 		httpClient := &http.Client{
 			Timeout: 100 * time.Millisecond,

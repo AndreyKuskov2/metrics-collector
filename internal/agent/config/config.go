@@ -16,6 +16,7 @@ type AgentConfig struct {
 	PollInterval   int    `env:"POLL_INTERVAL"`
 	MaxRetries     int
 	RetryDelay     time.Duration
+	SecretKey      string `env:"KEY"`
 }
 
 func NewConfig() (*AgentConfig, error) {
@@ -24,6 +25,7 @@ func NewConfig() (*AgentConfig, error) {
 	pflag.StringVarP(&agentConfig.Address, "address", "a", "localhost:8080", "server address")
 	pflag.IntVarP(&agentConfig.PollInterval, "pollInterval", "p", 2, "poll interval in seconds")
 	pflag.IntVarP(&agentConfig.ReportInterval, "reportInterval", "r", 10, "report interval in seconds")
+	pflag.StringVarP(&agentConfig.SecretKey, "key", "k", "", "secret key")
 
 	pflag.Parse()
 
