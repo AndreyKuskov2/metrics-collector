@@ -32,3 +32,8 @@ func (m Metrics) Bind(r *http.Request) error {
 	// }
 	return nil
 }
+
+type AllMetrics struct {
+	RuntimeMetrics    map[string]Metrics `json:"runtime_metrics"`
+	AdditionalMetrics map[string]Metrics `json:"additional_metrics"`
+}

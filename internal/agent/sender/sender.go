@@ -77,11 +77,15 @@ var gzipNewWriter = func(w io.Writer) *gzip.Writer {
 	return gzip.NewWriter(w)
 }
 
-func SendMetricsBatch(cfg *config.AgentConfig, metricsData map[string]models.Metrics, logger *logrus.Logger) error {
+func SendMetricsBatch(cfg *config.AgentConfig, metricsData models.AllMetrics, logger *logrus.Logger) error {
 	url := fmt.Sprintf("http://%s/updates/", cfg.Address)
 
 	var requestBody []models.Metrics
-	for _, metric := range metricsData {
+	for _, metric := range metricsData.RuntimeMetrics {
+		requestBody = append(requestBody, metric)
+	}
+
+	for _, metric := range metricsData.AdditionalMetrics {
 		requestBody = append(requestBody, metric)
 	}
 

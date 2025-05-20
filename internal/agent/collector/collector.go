@@ -3,8 +3,11 @@ package collector
 import (
 	"math/rand/v2"
 	"runtime"
+	"strconv"
 
 	"github.com/AndreyKuskov2/metrics-collector/internal/models"
+	"github.com/shirou/gopsutil/cpu"
+	"github.com/shirou/gopsutil/mem"
 )
 
 func toFloat64Pointer(value float64) *float64 {
@@ -162,4 +165,34 @@ func CollectMetrics(pollCount int64) map[string]models.Metrics {
 			Value: toFloat64Pointer(rand.Float64()),
 		},
 	}
+}
+
+func CollectAdditionMetrics() map[string]models.Metrics {
+	metrics := make(map[string]models.Metrics)
+
+	v, _ := mem.VirtualMemory()
+
+	cpuUtilization, _ := cpu.Percent(0, true)
+
+	metrics["TotalMemory"] = models.Metrics{
+		ID:    "TotalMemory",
+		MType: "gauge",
+		Value: toFloat64Pointer(float64(v.Total)),
+	}
+
+	metrics["FreeMemory"] = models.Metrics{
+		ID:    "FreeMemory",
+		MType: "gauge",
+		Value: toFloat64Pointer(float64(v.Free)),
+	}
+
+	for i, cpuPercent := range cpuUtilization {
+		metrics["CPUutilization"+strconv.Itoa(i+1)] = models.Metrics{
+			ID:    "CPUutilization" + strconv.Itoa(i+1),
+			MType: "gauge",
+			Value: toFloat64Pointer(cpuPercent),
+		}
+	}
+
+	return metrics
 }

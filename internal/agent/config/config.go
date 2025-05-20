@@ -17,6 +17,7 @@ type AgentConfig struct {
 	MaxRetries     int
 	RetryDelay     time.Duration
 	SecretKey      string `env:"KEY"`
+	RateLimit      int    `env:"RATE_LIMIT"`
 }
 
 func NewConfig() (*AgentConfig, error) {
@@ -26,6 +27,7 @@ func NewConfig() (*AgentConfig, error) {
 	pflag.IntVarP(&agentConfig.PollInterval, "pollInterval", "p", 2, "poll interval in seconds")
 	pflag.IntVarP(&agentConfig.ReportInterval, "reportInterval", "r", 10, "report interval in seconds")
 	pflag.StringVarP(&agentConfig.SecretKey, "key", "k", "", "secret key")
+	pflag.IntVarP(&agentConfig.RateLimit, "rateLimit", "l", 0, "rate limit")
 
 	pflag.Parse()
 
