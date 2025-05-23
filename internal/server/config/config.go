@@ -18,6 +18,7 @@ type ServerConfig struct {
 	DatabaseDSN     string `env:"DATABASE_DSN"`
 	MaxRetries      int
 	RetryDelay      time.Duration
+	SecretKey       string `env:"KEY"`
 }
 
 func NewConfig() (*ServerConfig, error) {
@@ -28,6 +29,7 @@ func NewConfig() (*ServerConfig, error) {
 	pflag.StringVarP(&serverConfig.FileStoragePath, "file-storage-path", "f", "storage.json", "file storage path")
 	pflag.BoolVarP(&serverConfig.Restore, "restore", "r", true, "restore from file")
 	pflag.StringVarP(&serverConfig.DatabaseDSN, "database-dsn", "d", "", "database url")
+	pflag.StringVarP(&serverConfig.SecretKey, "key", "k", "", "secret key")
 
 	pflag.Parse()
 

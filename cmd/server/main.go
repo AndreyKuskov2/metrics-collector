@@ -31,7 +31,7 @@ func main() {
 	service := services.NewMetricService(stor, logger)
 	handler := handlers.NewMetricHandler(service, logger)
 
-	metricRouter := router.GetRouter(logger, handler)
+	metricRouter := router.GetRouter(cfg, logger, handler)
 
 	stop := make(chan os.Signal, 1)
 	signal.Notify(stop, syscall.SIGINT, syscall.SIGTERM)
