@@ -2,6 +2,7 @@ package handlers
 
 import (
 	"context"
+	"fmt"
 	"net/http"
 	"net/http/httptest"
 	"testing"
@@ -123,4 +124,44 @@ func muxSetURLParams(r *http.Request, params map[string]string) *http.Request {
 		routeCtx.URLParams.Add(k, v)
 	}
 	return r.WithContext(context.WithValue(r.Context(), chi.RouteCtxKey, routeCtx))
+}
+
+func ExampleUpdateMetricHandler() {
+	mockService := &mockMetricService{
+		UpdateMetricFunc: func(requestMetric *models.Metrics) (*models.Metrics, error) {
+			return requestMetric, nil
+		},
+	}
+	logger := logrus.New()
+	handler := NewMetricHandler(mockService, logger)
+
+	req := httptest.NewRequest("POST", "/update/counter/myCounter/42", nil)
+	req = muxSetURLParams(req, map[string]string{"metric_type": "counter", "metric_name": "myCounter", "metric_value": "42"})
+	rw := httptest.NewRecorder()
+
+	handler.UpdateMetricHandler(rw, req)
+	fmt.Println(rw.Code)
+	// Output: 200
+}
+
+func ExampleGetMetricHandler() {
+	val := int64(123)
+	mockService := &mockMetricService{
+		GetMetricFunc: func(metricName string) (*models.Metrics, bool) {
+			return &models.Metrics{ID: metricName, MType: "counter", Delta: &val}, true
+		},
+	}
+	logger := logrus.New()
+	handler := NewMetricHandler(mockService, logger)
+
+	req := httptest.NewRequest("GET", "/value/counter/myCounter", nil)
+	req = muxSetURLParams(req, map[string]string{"metric_name": "myCounter"})
+	rw := httptest.NewRecorder()
+
+	handler.GetMetricHandler(rw, req)
+	fmt.Println(rw.Code)
+	fmt.Println(rw.Body.String())
+	// Output:
+	// 200
+	// 123
 }

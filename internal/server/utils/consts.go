@@ -1,6 +1,6 @@
 package utils
 
 const (
-	GAUGE   = "gauge"
+	GAUGE   = "gauge" 
 	COUNTER = "counter"
 )

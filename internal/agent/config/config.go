@@ -10,8 +10,9 @@ import (
 	"github.com/spf13/pflag"
 )
 
+// AgentConfig - структура для хранения конфигурации агента.
 type AgentConfig struct {
-	Address        string `env:"ADDRESS"`
+	Address        string `env:"ADDRESS"` // Переменная, задающая адрес сервера
 	ReportInterval int    `env:"REPORT_INTERVAL"`
 	PollInterval   int    `env:"POLL_INTERVAL"`
 	MaxRetries     int
@@ -20,6 +21,7 @@ type AgentConfig struct {
 	RateLimit      int    `env:"RATE_LIMIT"`
 }
 
+// NewConfig - функция для создания новой конфигурации агента.
 func NewConfig() (*AgentConfig, error) {
 	var agentConfig AgentConfig
 

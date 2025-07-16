@@ -14,6 +14,7 @@ func toFloat64Pointer(value float64) *float64 {
 	return &value
 }
 
+// Функция сбора метрик в структуру Metrics
 func CollectMetrics(pollCount int64) map[string]models.Metrics {
 	var m runtime.MemStats
 	runtime.ReadMemStats(&m)

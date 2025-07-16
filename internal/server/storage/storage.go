@@ -8,6 +8,7 @@ import (
 	"github.com/sirupsen/logrus"
 )
 
+// Интерфейс с методами работы с хранилищами
 type Storager interface {
 	GetAllMetrics() (map[string]*models.Metrics, error)
 	GetMetric(metricName string) (*models.Metrics, bool)
@@ -16,6 +17,7 @@ type Storager interface {
 	UpdateBatchMetrics(metrics []models.Metrics) error
 }
 
+// Создание нового хранилища, исходя из переданных параметров
 func NewStorage(ctx context.Context, cfg *config.ServerConfig, logger *logrus.Logger) (Storager, error) {
 	if cfg.FileStoragePath == "" && cfg.DatabaseDSN == "" {
 		logger.Info("No storage selected using default: MemoryStorage")
