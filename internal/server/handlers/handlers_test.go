@@ -126,7 +126,7 @@ func muxSetURLParams(r *http.Request, params map[string]string) *http.Request {
 	return r.WithContext(context.WithValue(r.Context(), chi.RouteCtxKey, routeCtx))
 }
 
-func ExampleUpdateMetricHandler() {
+func ExampleMetricHandler_UpdateMetricHandler() {
 	mockService := &mockMetricService{
 		UpdateMetricFunc: func(requestMetric *models.Metrics) (*models.Metrics, error) {
 			return requestMetric, nil
@@ -144,7 +144,7 @@ func ExampleUpdateMetricHandler() {
 	// Output: 200
 }
 
-func ExampleGetMetricHandler() {
+func ExampleMetricHandler_GetMetricHandler() {
 	val := int64(123)
 	mockService := &mockMetricService{
 		GetMetricFunc: func(metricName string) (*models.Metrics, bool) {
