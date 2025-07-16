@@ -9,7 +9,7 @@ import (
 	"github.com/sirupsen/logrus"
 )
 
-type IMetricService interface {
+type MetricStorager interface {
 	UpdateMetric(metric *models.Metrics) error
 	GetMetric(metricName string) (*models.Metrics, bool)
 	GetAllMetrics() (map[string]*models.Metrics, error)
@@ -18,11 +18,11 @@ type IMetricService interface {
 }
 
 type MetricService struct {
-	storageRepo IMetricService
+	storageRepo MetricStorager
 	logger      *logrus.Logger
 }
 
-func NewMetricService(storageRepo IMetricService, logger *logrus.Logger) *MetricService {
+func NewMetricService(storageRepo MetricStorager, logger *logrus.Logger) *MetricService {
 	return &MetricService{
 		storageRepo: storageRepo,
 		logger:      logger,

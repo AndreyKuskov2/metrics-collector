@@ -14,7 +14,7 @@ import (
 	"github.com/sirupsen/logrus"
 )
 
-type IMetricHandler interface {
+type MetricServicer interface {
 	UpdateMetric(requestMetric *models.Metrics) (*models.Metrics, error)
 	GetMetric(metricName string) (*models.Metrics, bool)
 	GetAllMetrics() (map[string]*models.Metrics, error)
@@ -23,11 +23,11 @@ type IMetricHandler interface {
 }
 
 type MetricHandler struct {
-	services IMetricHandler
+	services MetricServicer
 	logger   *logrus.Logger
 }
 
-func NewMetricHandler(services IMetricHandler, logger *logrus.Logger) *MetricHandler {
+func NewMetricHandler(services MetricServicer, logger *logrus.Logger) *MetricHandler {
 	return &MetricHandler{
 		services: services,
 		logger:   logger,

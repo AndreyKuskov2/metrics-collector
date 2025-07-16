@@ -15,8 +15,9 @@ func GetRouter(cfg *config.ServerConfig, logger *logrus.Logger, h *handlers.Metr
 	r := chi.NewRouter()
 
 	r.Use(middlewares.LoggerMiddleware(logger))
-	middlewares.CheckHashMiddleware(cfg)
 	r.Use(middleware.Compress(5, "text/html", "application/json"))
+
+	r.Mount("/debug", middleware.Profiler())
 
 	r.Post("/update/{metric_type}/{metric_name}/{metric_value}", h.UpdateMetricHandler)
 	r.With(middlewares.GzipMiddleware).Post("/update/", h.UpdateMetricHandlerJSON)
