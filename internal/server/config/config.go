@@ -10,9 +10,10 @@ import (
 	"github.com/spf13/pflag"
 )
 
+// ServerConfig - структура для хранения конфигурации сервера.
 type ServerConfig struct {
-	Address         string `env:"ADDRESS"`
-	StoreInterval   int    `env:"STORE_INTERVAL"`
+	Address         string `env:"ADDRESS"` // Переменная, задающая адрес сервера
+	StoreInterval   int    `env:"STORE_INTERVAL"` 
 	FileStoragePath string `env:"FILE_STORAGE_PATH"`
 	Restore         bool   `env:"RESTORE"`
 	DatabaseDSN     string `env:"DATABASE_DSN"`
@@ -21,6 +22,7 @@ type ServerConfig struct {
 	SecretKey       string `env:"KEY"`
 }
 
+// NewConfig - функция для создания новой конфигурации сервера.
 func NewConfig() (*ServerConfig, error) {
 	var serverConfig ServerConfig
 

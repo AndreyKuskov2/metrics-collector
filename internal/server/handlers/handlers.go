@@ -1,3 +1,4 @@
+// Пакет handlers с endpoint
 package handlers
 
 import (
@@ -14,7 +15,8 @@ import (
 	"github.com/sirupsen/logrus"
 )
 
-type IMetricHandler interface {
+// MetricServicer - интерфейс для работы с метриками.
+type MetricServicer interface {
 	UpdateMetric(requestMetric *models.Metrics) (*models.Metrics, error)
 	GetMetric(metricName string) (*models.Metrics, bool)
 	GetAllMetrics() (map[string]*models.Metrics, error)
@@ -22,18 +24,21 @@ type IMetricHandler interface {
 	UpdateBatchMetricsServ(metrics []models.Metrics, r *http.Request) error
 }
 
+// MetricHandler - структура для работы с метриками.
 type MetricHandler struct {
-	services IMetricHandler
+	services MetricServicer
 	logger   *logrus.Logger
 }
 
-func NewMetricHandler(services IMetricHandler, logger *logrus.Logger) *MetricHandler {
+// NewMetricHandler - функция для создания нового MetricHandler.
+func NewMetricHandler(services MetricServicer, logger *logrus.Logger) *MetricHandler {
 	return &MetricHandler{
 		services: services,
 		logger:   logger,
 	}
 }
 
+// UpdateMetricHandler - обработчик для обновления метрики.
 func (mh *MetricHandler) UpdateMetricHandler(w http.ResponseWriter, r *http.Request) {
 	metricType := chi.URLParam(r, "metric_type")
 	if metricType == "" || (metricType != utils.COUNTER && metricType != utils.GAUGE) {
@@ -89,6 +94,7 @@ func (mh *MetricHandler) UpdateMetricHandler(w http.ResponseWriter, r *http.Requ
 	render.PlainText(w, r, "")
 }
 
+// GetMetricHandler - обработчик для получения метрики.
 func (mh *MetricHandler) GetMetricHandler(w http.ResponseWriter, r *http.Request) {
 	metricName := chi.URLParam(r, "metric_name")
 	if metricName == "" {
@@ -116,6 +122,7 @@ func (mh *MetricHandler) GetMetricHandler(w http.ResponseWriter, r *http.Request
 	}
 }
 
+// GetMetricsHandler - обработчик для получения всех метрик.
 func (mh *MetricHandler) GetMetricsHandler(w http.ResponseWriter, r *http.Request) {
 	metrics, err := mh.services.GetAllMetrics()
 	if err != nil {
@@ -134,6 +141,7 @@ func (mh *MetricHandler) GetMetricsHandler(w http.ResponseWriter, r *http.Reques
 	tmpl.Execute(w, metrics)
 }
 
+// UpdateManyMetricsHandler - обработчик для обновления нескольких метрик.
 func (mh *MetricHandler) UpdateManyMetricsHandler(w http.ResponseWriter, r *http.Request) {
 	var requestMetrics []models.Metrics
 
@@ -157,6 +165,7 @@ func (mh *MetricHandler) UpdateManyMetricsHandler(w http.ResponseWriter, r *http
 	render.PlainText(w, r, "")
 }
 
+// UpdateMetricHandlerJSON - обработчик для обновления метрики в формате JSON.
 func (mh *MetricHandler) UpdateMetricHandlerJSON(w http.ResponseWriter, r *http.Request) {
 	var requestMetric models.Metrics
 
@@ -183,6 +192,7 @@ func (mh *MetricHandler) UpdateMetricHandlerJSON(w http.ResponseWriter, r *http.
 	render.PlainText(w, r, "")
 }
 
+// GetMetricHandlerJSON - обработчик для получения метрики в формате JSON.
 func (mh *MetricHandler) GetMetricHandlerJSON(w http.ResponseWriter, r *http.Request) {
 	var metric models.Metrics
 
@@ -203,6 +213,7 @@ func (mh *MetricHandler) GetMetricHandlerJSON(w http.ResponseWriter, r *http.Req
 	render.PlainText(w, r, "")
 }
 
+// Ping - обработчик для проверки соединения с базой данных.
 func (mh *MetricHandler) Ping(w http.ResponseWriter, r *http.Request) {
 	if err := mh.services.Ping(); err != nil {
 		mh.logger.Infof("ping error: %s", err)

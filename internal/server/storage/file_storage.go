@@ -13,6 +13,7 @@ import (
 	"github.com/sirupsen/logrus"
 )
 
+// Базовая структура для хранения метрик в файле
 type FileMemStorage struct {
 	FileStorage *os.File
 	Encoder     *json.Encoder
@@ -20,6 +21,7 @@ type FileMemStorage struct {
 	mu          sync.Mutex
 }
 
+// Создание структуры FileMemStorage
 func NewFileMemStorage() *FileMemStorage {
 	return &FileMemStorage{
 		memStorage: make(map[string]*models.Metrics),
@@ -30,6 +32,7 @@ func (s *FileMemStorage) Ping() error {
 	return nil
 }
 
+// Функция для старта логики хранения метрик в файле
 func StartFileStorageLogic(config *config.ServerConfig, s *FileMemStorage, logger *logrus.Logger) {
 	if config.FileStoragePath != "" {
 		err := s.OpenFile(config.FileStoragePath)
@@ -78,6 +81,7 @@ func (s *FileMemStorage) UpdateBatchMetrics(metrics []models.Metrics) error {
 	return nil
 }
 
+// Сохранение метрик из памяти в файл с его перезаписью
 func (s *FileMemStorage) SaveMemStorageToFile() error {
 	s.mu.Lock()
 	defer s.mu.Unlock()
@@ -102,6 +106,7 @@ func (s *FileMemStorage) SaveMemStorageToFile() error {
 	return nil
 }
 
+// Загрузка метрик из файла в память
 func (s *FileMemStorage) LoadMemStorageFromFile() error {
 	s.mu.Lock()
 	defer s.mu.Unlock()
@@ -131,10 +136,12 @@ func (s *FileMemStorage) LoadMemStorageFromFile() error {
 	return nil
 }
 
+// Получение всех метрик из памяти
 func (s *FileMemStorage) GetAllMetrics() (map[string]*models.Metrics, error) {
 	return s.memStorage, nil
 }
 
+// Получение конкретной метрики из памяти
 func (s *FileMemStorage) GetMetric(metricName string) (*models.Metrics, bool) {
 	if metric, ok := s.memStorage[metricName]; ok {
 		return metric, true
@@ -142,6 +149,7 @@ func (s *FileMemStorage) GetMetric(metricName string) (*models.Metrics, bool) {
 	return nil, false
 }
 
+// Обновление метрики
 func (s *FileMemStorage) UpdateMetric(metric *models.Metrics) error {
 	s.memStorage[metric.ID] = metric
 	return nil

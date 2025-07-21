@@ -12,11 +12,13 @@ import (
 	"github.com/jackc/pgx/v5/pgxpool"
 )
 
+// DBStorage - структура для работы с базой данных
 type DBStorage struct {
 	DB  *pgxpool.Pool
 	ctx context.Context
 }
 
+// Создание нового DBStorage
 func NewDBStorage(cfg *config.ServerConfig, ctx context.Context) (*DBStorage, error) {
 	var pool *pgxpool.Pool
 	var err error
@@ -39,10 +41,12 @@ func NewDBStorage(cfg *config.ServerConfig, ctx context.Context) (*DBStorage, er
 	}, nil
 }
 
+// Пинг базы данных
 func (s *DBStorage) Ping() error {
 	return s.DB.Ping(context.Background())
 }
 
+// Создание таблиц в базе данных
 func (s *DBStorage) CreateTables() error {
 	_, err := s.DB.Exec(s.ctx, createTables)
 	if err != nil {
@@ -51,6 +55,7 @@ func (s *DBStorage) CreateTables() error {
 	return nil
 }
 
+// Получение всех метрик из базы данных
 func (s *DBStorage) GetAllMetrics() (map[string]*models.Metrics, error) {
 	rows, err := s.DB.Query(s.ctx, getAllMetrics)
 	if err != nil {
@@ -74,6 +79,7 @@ func (s *DBStorage) GetAllMetrics() (map[string]*models.Metrics, error) {
 	return metrics, nil
 }
 
+// Получение метрики
 func (s *DBStorage) GetMetric(metricName string) (*models.Metrics, bool) {
 	var metric models.Metrics
 	if err := s.DB.QueryRow(s.ctx, getMetricByName, metricName).Scan(&metric.ID, &metric.MType, &metric.Value, &metric.Delta); err == nil {
@@ -83,6 +89,7 @@ func (s *DBStorage) GetMetric(metricName string) (*models.Metrics, bool) {
 	return nil, false
 }
 
+// Обновление метрики
 func (s *DBStorage) UpdateMetric(metric *models.Metrics) error {
 	var err error
 
@@ -97,6 +104,7 @@ func (s *DBStorage) UpdateMetric(metric *models.Metrics) error {
 	return nil
 }
 
+// Обновление метрик пачкой
 func (s *DBStorage) UpdateBatchMetrics(metrics []models.Metrics) error {
 	tx, err := s.DB.Begin(s.ctx)
 	if err != nil {

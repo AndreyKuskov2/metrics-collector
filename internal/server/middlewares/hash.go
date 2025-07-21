@@ -18,6 +18,7 @@ func calculateHash(data, key []byte) string {
 	return hex.EncodeToString(h.Sum(nil))
 }
 
+// CheckHashMiddleware - middleware для проверки хеша.
 func CheckHashMiddleware(cfg *config.ServerConfig) func(next http.Handler) http.Handler {
 	return func(next http.Handler) http.Handler {
 		return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {

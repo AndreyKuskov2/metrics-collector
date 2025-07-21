@@ -9,7 +9,8 @@ import (
 	"github.com/sirupsen/logrus"
 )
 
-type IMetricService interface {
+// MetricStorager - интерфейс для работы с метриками.
+type MetricStorager interface {
 	UpdateMetric(metric *models.Metrics) error
 	GetMetric(metricName string) (*models.Metrics, bool)
 	GetAllMetrics() (map[string]*models.Metrics, error)
@@ -17,18 +18,21 @@ type IMetricService interface {
 	UpdateBatchMetrics(metrics []models.Metrics) error
 }
 
+// MetricService - структура для работы с метриками.
 type MetricService struct {
-	storageRepo IMetricService
+	storageRepo MetricStorager
 	logger      *logrus.Logger
 }
 
-func NewMetricService(storageRepo IMetricService, logger *logrus.Logger) *MetricService {
+// NewMetricService - функция для создания нового MetricService.
+func NewMetricService(storageRepo MetricStorager, logger *logrus.Logger) *MetricService {
 	return &MetricService{
 		storageRepo: storageRepo,
 		logger:      logger,
 	}
 }
 
+// Ping - метод для проверки соединения с базой данных.
 func (s *MetricService) Ping() error {
 	return s.storageRepo.Ping()
 }
@@ -63,6 +67,7 @@ func (s *MetricService) localUpdateMetric(requestMetric *models.Metrics) (*model
 	return metric, nil
 }
 
+// UpdateMetric - метод для обновления метрики.
 func (s *MetricService) UpdateMetric(requestMetric *models.Metrics) (*models.Metrics, error) {
 	metric, _ := s.localUpdateMetric(requestMetric)
 
@@ -73,6 +78,7 @@ func (s *MetricService) UpdateMetric(requestMetric *models.Metrics) (*models.Met
 	return metric, nil
 }
 
+// GetMetric - метод для получения метрики.
 func (s *MetricService) GetMetric(metricName string) (*models.Metrics, bool) {
 	responseMetric, ok := s.storageRepo.GetMetric(metricName)
 	if ok {
@@ -81,6 +87,7 @@ func (s *MetricService) GetMetric(metricName string) (*models.Metrics, bool) {
 	return nil, ok
 }
 
+// GetAllMetrics - метод для получения всех метрик.
 func (s *MetricService) GetAllMetrics() (map[string]*models.Metrics, error) {
 	metrics, err := s.storageRepo.GetAllMetrics()
 	if err != nil {
@@ -89,6 +96,7 @@ func (s *MetricService) GetAllMetrics() (map[string]*models.Metrics, error) {
 	return metrics, nil
 }
 
+// UpdateBatchMetricsServ - метод для обновления метрик пачкой.
 func (s *MetricService) UpdateBatchMetricsServ(metrics []models.Metrics, r *http.Request) error {
 	if len(metrics) == 0 {
 		return fmt.Errorf("empty metrics")

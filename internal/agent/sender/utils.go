@@ -6,6 +6,7 @@ import (
 	"encoding/hex"
 )
 
+// Функция вычисления хэша
 func calculateHash(data, key []byte) string {
 	h := hmac.New(sha256.New, key)
 	h.Write(data)

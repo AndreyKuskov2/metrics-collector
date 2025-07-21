@@ -34,6 +34,7 @@ func main() {
 	metricRouter := router.GetRouter(cfg, logger, handler)
 
 	stop := make(chan os.Signal, 1)
+
 	signal.Notify(stop, syscall.SIGINT, syscall.SIGTERM)
 
 	go func() {

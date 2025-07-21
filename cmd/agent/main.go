@@ -5,6 +5,9 @@ import (
 	"sync"
 	"time"
 
+	"net/http"
+	_ "net/http/pprof" // подключаем пакет pprof
+
 	"github.com/AndreyKuskov2/metrics-collector/internal/agent/collector"
 	"github.com/AndreyKuskov2/metrics-collector/internal/agent/config"
 	"github.com/AndreyKuskov2/metrics-collector/internal/agent/sender"
@@ -26,6 +29,10 @@ func main() {
 		logger.Info("failed to get config")
 		return
 	}
+
+	go func() {
+		logger.Println(http.ListenAndServe("localhost:6060", nil))
+	}()
 
 	tickerPoll := time.NewTicker(time.Duration(cfg.PollInterval) * time.Second)
 	tickerReport := time.NewTicker(time.Duration(cfg.ReportInterval) * time.Second)

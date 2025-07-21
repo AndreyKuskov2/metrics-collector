@@ -16,6 +16,7 @@ import (
 	"github.com/sirupsen/logrus"
 )
 
+// Отправка метрик
 func SendMetrics(address string, metrics map[string]models.Metrics, logger *logrus.Logger) error {
 	for metricName, metricData := range metrics {
 		var url string
@@ -42,6 +43,7 @@ func SendMetrics(address string, metrics map[string]models.Metrics, logger *logr
 	return nil
 }
 
+// Отправка метрик в формате JSON
 func SendMetricsJSON(address string, metrics map[string]models.Metrics, logger *logrus.Logger) error {
 	for metricName, metricData := range metrics {
 		url := fmt.Sprintf("http://%s/update/", address)
@@ -77,6 +79,7 @@ var gzipNewWriter = func(w io.Writer) *gzip.Writer {
 	return gzip.NewWriter(w)
 }
 
+// Отправка метрик пачкой в формате JSON
 func SendMetricsBatch(cfg *config.AgentConfig, metricsData models.AllMetrics, logger *logrus.Logger) error {
 	url := fmt.Sprintf("http://%s/updates/", cfg.Address)
 
@@ -151,6 +154,7 @@ func SendMetricsBatch(cfg *config.AgentConfig, metricsData models.AllMetrics, lo
 	return nil
 }
 
+// Повторная отправка метрик
 func sendWithRetry(cfg *config.AgentConfig, ro grequests.RequestOptions, url string, logger *logrus.Logger) error {
 	delay := cfg.RetryDelay
 	for i := 0; i < cfg.MaxRetries; i++ {
