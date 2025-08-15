@@ -1,8 +1,10 @@
 package config
 
 import (
+	"encoding/json"
 	"fmt"
 	"log"
+	"os"
 	"strings"
 	"time"
 
@@ -12,15 +14,16 @@ import (
 
 // ServerConfig - структура для хранения конфигурации сервера.
 type ServerConfig struct {
-	Address         string `env:"ADDRESS"` // Переменная, задающая адрес сервера
-	StoreInterval   int    `env:"STORE_INTERVAL"`
-	FileStoragePath string `env:"FILE_STORAGE_PATH"`
-	Restore         bool   `env:"RESTORE"`
-	DatabaseDSN     string `env:"DATABASE_DSN"`
+	Address         string `env:"ADDRESS" json:"address"` // Переменная, задающая адрес сервера
+	StoreInterval   int    `env:"STORE_INTERVAL" json:"store_interval"`
+	FileStoragePath string `env:"FILE_STORAGE_PATH" json:"store_file"`
+	Restore         bool   `env:"RESTORE" json:"restore"`
+	DatabaseDSN     string `env:"DATABASE_DSN" json:"database_dsn"`
 	MaxRetries      int
 	RetryDelay      time.Duration
-	SecretKey       string `env:"KEY"`
-	CryptoKey       string `env:"CRYPTO_KEY"`
+	SecretKey       string `env:"KEY" json:"key"`
+	CryptoKey       string `env:"CRYPTO_KEY" json:"crypto_key"`
+	Config          string `env:"CONFIG"`
 }
 
 // NewConfig - функция для создания новой конфигурации сервера.
@@ -34,8 +37,19 @@ func NewConfig() (*ServerConfig, error) {
 	pflag.StringVarP(&serverConfig.DatabaseDSN, "database-dsn", "d", "", "database url")
 	pflag.StringVarP(&serverConfig.SecretKey, "key", "k", "", "secret key")
 	pflag.StringVar(&serverConfig.CryptoKey, "crypto-key", "", "crypto key")
+	pflag.StringVarP(&serverConfig.Config, "config", "c", "", "config")
 
 	pflag.Parse()
+
+	if serverConfig.Config != "" {
+		file, err := os.ReadFile(serverConfig.Config)
+		if err != nil {
+			return nil, fmt.Errorf("failed to read config file")
+		}
+		if err := json.Unmarshal(file, &serverConfig); err != nil {
+			return nil, fmt.Errorf("cannot parse json config to object")
+		}
+	}
 
 	for _, arg := range pflag.Args() {
 		if !strings.HasPrefix(arg, "-") {
