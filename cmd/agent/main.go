@@ -3,7 +3,10 @@ package main
 import (
 	"fmt"
 	"maps"
+	"os"
+	"os/signal"
 	"sync"
+	"syscall"
 	"time"
 
 	"net/http"
@@ -40,6 +43,10 @@ func main() {
 		return
 	}
 
+	stop := make(chan os.Signal, 1)
+
+	signal.Notify(stop, syscall.SIGINT, syscall.SIGTERM, syscall.SIGQUIT)
+
 	go func() {
 		logger.Println(http.ListenAndServe("localhost:6060", nil))
 	}()
@@ -58,9 +65,13 @@ func main() {
 				sender.SendMetricsJSON(cfg, metrics, logger)
 				sender.SendMetricsBatch(cfg, models.AllMetrics{RuntimeMetrics: metrics}, logger)
 				logger.Info("Sent metrics")
+			case <-stop:
+				logger.Info("Shutdown application!")
+				return
 			}
 		}
 	} else {
+		fmt.Println(cfg.RateLimit)
 		metricsChan := make(chan models.AllMetrics, cfg.RateLimit)
 		var wg sync.WaitGroup
 
