@@ -13,13 +13,14 @@ import (
 // ServerConfig - структура для хранения конфигурации сервера.
 type ServerConfig struct {
 	Address         string `env:"ADDRESS"` // Переменная, задающая адрес сервера
-	StoreInterval   int    `env:"STORE_INTERVAL"` 
+	StoreInterval   int    `env:"STORE_INTERVAL"`
 	FileStoragePath string `env:"FILE_STORAGE_PATH"`
 	Restore         bool   `env:"RESTORE"`
 	DatabaseDSN     string `env:"DATABASE_DSN"`
 	MaxRetries      int
 	RetryDelay      time.Duration
 	SecretKey       string `env:"KEY"`
+	CryptoKey       string `env:"CRYPTO_KEY"`
 }
 
 // NewConfig - функция для создания новой конфигурации сервера.
@@ -32,6 +33,7 @@ func NewConfig() (*ServerConfig, error) {
 	pflag.BoolVarP(&serverConfig.Restore, "restore", "r", true, "restore from file")
 	pflag.StringVarP(&serverConfig.DatabaseDSN, "database-dsn", "d", "", "database url")
 	pflag.StringVarP(&serverConfig.SecretKey, "key", "k", "", "secret key")
+	pflag.StringVar(&serverConfig.CryptoKey, "crypto-key", "", "crypto key")
 
 	pflag.Parse()
 

@@ -19,6 +19,7 @@ type AgentConfig struct {
 	RetryDelay     time.Duration
 	SecretKey      string `env:"KEY"`
 	RateLimit      int    `env:"RATE_LIMIT"`
+	CryptoKey      string `env:"CRYPTO_KEY"`
 }
 
 // NewConfig - функция для создания новой конфигурации агента.
@@ -30,6 +31,7 @@ func NewConfig() (*AgentConfig, error) {
 	pflag.IntVarP(&agentConfig.ReportInterval, "reportInterval", "r", 10, "report interval in seconds")
 	pflag.StringVarP(&agentConfig.SecretKey, "key", "k", "", "secret key")
 	pflag.IntVarP(&agentConfig.RateLimit, "rateLimit", "l", 0, "rate limit")
+	pflag.StringVar(&agentConfig.CryptoKey, "crypto-key", "", "crypto key")
 
 	pflag.Parse()
 

@@ -48,9 +48,18 @@ func main() {
 	signal.Notify(stop, syscall.SIGINT, syscall.SIGTERM)
 
 	go func() {
-		logger.Infof("Start web-server on %s", cfg.Address)
-		if err := http.ListenAndServe(cfg.Address, metricRouter); err != nil {
-			logger.Fatalf("Failed to start server: %v", err)
+		if cfg.CryptoKey != "" {
+			certFile := "certs/cert.crt"
+
+			logger.Infof("Start HTTPS web-server on %s", cfg.Address)
+			if err := http.ListenAndServeTLS(cfg.Address, certFile, cfg.CryptoKey, metricRouter); err != nil {
+				logger.Fatalf("Failed to start server: %v", err)
+			}
+		} else {
+			logger.Infof("Start web-server on %s", cfg.Address)
+			if err := http.ListenAndServe(cfg.Address, metricRouter); err != nil {
+				logger.Fatalf("Failed to start server: %v", err)
+			}
 		}
 	}()
 

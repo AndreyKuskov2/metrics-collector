@@ -3,6 +3,7 @@ package sender
 import (
 	"bytes"
 	"compress/gzip"
+	"crypto/tls"
 	"encoding/json"
 	"fmt"
 	"io"
@@ -17,18 +18,25 @@ import (
 )
 
 // Отправка метрик
-func SendMetrics(address string, metrics map[string]models.Metrics, logger *logrus.Logger) error {
+func SendMetrics(cfg *config.AgentConfig, metrics map[string]models.Metrics, logger *logrus.Logger) error {
 	for metricName, metricData := range metrics {
 		var url string
 		if metricData.Value == nil {
-			url = fmt.Sprintf("http://%s/update/%s/%s/%v", address, metricData.MType, metricName, *metricData.Delta)
+			url = fmt.Sprintf("http://%s/update/%s/%s/%v", cfg.Address, metricData.MType, metricName, *metricData.Delta)
+			if cfg.CryptoKey != "" {
+				url = fmt.Sprintf("https://%s/update/%s/%s/%v", cfg.Address, metricData.MType, metricName, *metricData.Delta)
+			}
 		} else {
-			url = fmt.Sprintf("http://%s/update/%s/%s/%v", address, metricData.MType, metricName, *metricData.Value)
+			url = fmt.Sprintf("http://%s/update/%s/%s/%v", cfg.Address, metricData.MType, metricName, *metricData.Value)
+			if cfg.CryptoKey != "" {
+				url = fmt.Sprintf("https://%s/update/%s/%s/%v", cfg.Address, metricData.MType, metricName, *metricData.Value)
+			}
 		}
 		ro := grequests.RequestOptions{
 			Headers: map[string]string{
 				"Content-Type": "text/plain",
 			},
+			InsecureSkipVerify: true,
 		}
 		resp, err := grequests.Post(url, &ro)
 		if err != nil {
@@ -44,9 +52,12 @@ func SendMetrics(address string, metrics map[string]models.Metrics, logger *logr
 }
 
 // Отправка метрик в формате JSON
-func SendMetricsJSON(address string, metrics map[string]models.Metrics, logger *logrus.Logger) error {
+func SendMetricsJSON(cfg *config.AgentConfig, metrics map[string]models.Metrics, logger *logrus.Logger) error {
 	for metricName, metricData := range metrics {
-		url := fmt.Sprintf("http://%s/update/", address)
+		url := fmt.Sprintf("http://%s/update/", cfg.Address)
+		if cfg.CryptoKey != "" {
+			url = fmt.Sprintf("https://%s/update/", cfg.Address)
+		}
 
 		jsonData, err := json.Marshal(metricData)
 		if err != nil {
@@ -61,6 +72,7 @@ func SendMetricsJSON(address string, metrics map[string]models.Metrics, logger *
 			},
 			DisableCompression: false,
 			JSON:               jsonData,
+			InsecureSkipVerify: true,
 		}
 		resp, err := grequests.Post(url, &ro)
 		if err != nil {
@@ -82,6 +94,9 @@ var gzipNewWriter = func(w io.Writer) *gzip.Writer {
 // Отправка метрик пачкой в формате JSON
 func SendMetricsBatch(cfg *config.AgentConfig, metricsData models.AllMetrics, logger *logrus.Logger) error {
 	url := fmt.Sprintf("http://%s/updates/", cfg.Address)
+	if cfg.CryptoKey != "" {
+		url = fmt.Sprintf("https://%s/updates/", cfg.Address)
+	}
 
 	var requestBody []models.Metrics
 	for _, metric := range metricsData.RuntimeMetrics {
@@ -126,8 +141,17 @@ func SendMetricsBatch(cfg *config.AgentConfig, metricsData models.AllMetrics, lo
 		req.Header.Set("Content-Encoding", "gzip")
 		req.Header.Set("HashSHA256", hash)
 
+		mTLSConfig := &tls.Config{
+			InsecureSkipVerify: true,
+		}
+
+		tr := &http.Transport{
+			TLSClientConfig: mTLSConfig,
+		}
+
 		httpClient := &http.Client{
-			Timeout: 100 * time.Millisecond,
+			Timeout:   100 * time.Millisecond,
+			Transport: tr,
 		}
 
 		response, err = httpClient.Do(req)
