@@ -71,63 +71,86 @@ func main() {
 			}
 		}
 	} else {
-		fmt.Println(cfg.RateLimit)
 		metricsChan := make(chan models.AllMetrics, cfg.RateLimit)
 		var wg sync.WaitGroup
 
 		// Запускаем воркеры
 		for i := 0; i < cfg.RateLimit; i++ {
 			wg.Add(1)
-			go worker(metricsChan, &wg, cfg, logger)
+			go worker(metricsChan, &wg, cfg, logger, stop)
 		}
 
 		go func() {
-			for range tickerPoll.C {
-				pollCount++
-				metricsMutex.Lock()
-				runtimeMetrics := collector.CollectMetrics(pollCount)
-				metricsMutex.Unlock()
+			for {
+				select {
+				case <-tickerPoll.C:
+					pollCount++
+					metricsMutex.Lock()
+					runtimeMetrics := collector.CollectMetrics(pollCount)
+					metricsMutex.Unlock()
 
-				metricsChan <- models.AllMetrics{RuntimeMetrics: runtimeMetrics}
+					metricsChan <- models.AllMetrics{RuntimeMetrics: runtimeMetrics}
+				case <-stop:
+					wg.Done()
+					return
+				}
 			}
 		}()
 
 		// Горутина для сбора дополнительных метрик
 		go func() {
-			for range tickerPoll.C {
-				metricsMutex.Lock()
-				additionalMetrics := collector.CollectAdditionMetrics()
-				metricsMutex.Unlock()
+			for {
+				select {
+				case <-tickerPoll.C:
+					metricsMutex.Lock()
+					additionalMetrics := collector.CollectAdditionMetrics()
+					metricsMutex.Unlock()
 
-				metricsChan <- models.AllMetrics{AdditionalMetrics: additionalMetrics}
+					metricsChan <- models.AllMetrics{AdditionalMetrics: additionalMetrics}
+				case <-stop:
+					wg.Done()
+					return
+				}
 			}
 		}()
 
 		// Горутина для отправки метрик на сервер
 		go func() {
-			for range tickerReport.C {
-				metricsMutex.Lock()
-				var combinedMetrics models.AllMetrics
-				for i := 0; i < cfg.RateLimit; i++ {
-					metrics := <-metricsChan
-					maps.Copy(combinedMetrics.RuntimeMetrics, metrics.RuntimeMetrics)
-					maps.Copy(combinedMetrics.AdditionalMetrics, metrics.AdditionalMetrics)
-				}
-				metricsMutex.Unlock()
+			for {
+				select {
+				case <-tickerReport.C:
+					metricsMutex.Lock()
+					var combinedMetrics models.AllMetrics
+					for i := 0; i < cfg.RateLimit; i++ {
+						metrics := <-metricsChan
+						maps.Copy(combinedMetrics.RuntimeMetrics, metrics.RuntimeMetrics)
+						maps.Copy(combinedMetrics.AdditionalMetrics, metrics.AdditionalMetrics)
+					}
+					metricsMutex.Unlock()
 
-				maps.Copy(combinedMetrics.RuntimeMetrics, combinedMetrics.AdditionalMetrics)
-				sender.SendMetricsBatch(cfg, combinedMetrics, logger)
+					maps.Copy(combinedMetrics.RuntimeMetrics, combinedMetrics.AdditionalMetrics)
+					sender.SendMetricsBatch(cfg, combinedMetrics, logger)
+				case <-stop:
+					wg.Done()
+					return
+				}
 			}
 		}()
 
 		wg.Wait()
+		logger.Info("Shutdown application!")
 	}
 }
 
-func worker(metricsChan chan models.AllMetrics, wg *sync.WaitGroup, config *config.AgentConfig, logger *logrus.Logger) {
+func worker(metricsChan chan models.AllMetrics, wg *sync.WaitGroup, config *config.AgentConfig, logger *logrus.Logger, stop chan os.Signal) {
 	defer wg.Done()
-	for metrics := range metricsChan {
-		maps.Copy(metrics.RuntimeMetrics, metrics.AdditionalMetrics)
-		sender.SendMetricsBatch(config, metrics, logger)
+	for {
+		select {
+		case metrics := <-metricsChan:
+			maps.Copy(metrics.RuntimeMetrics, metrics.AdditionalMetrics)
+			sender.SendMetricsBatch(config, metrics, logger)
+		case <-stop:
+			wg.Done()
+		}
 	}
 }
