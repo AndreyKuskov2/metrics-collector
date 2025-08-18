@@ -29,10 +29,14 @@ func TestSendMetrics_Success(t *testing.T) {
 	httpmock.RegisterResponder("POST", "http://localhost:8080/update/counter/foo/1",
 		httpmock.NewStringResponder(200, ""))
 
+	cfg := config.AgentConfig{
+		Address: "localhost:8080",
+	}
+
 	metrics := map[string]models.Metrics{
 		"foo": {MType: "counter", Delta: ptrInt64(1)},
 	}
-	err := SendMetrics("localhost:8080", metrics, &logrus.Logger{})
+	err := SendMetrics(&cfg, metrics, &logrus.Logger{})
 	if err != nil {
 		t.Errorf("unexpected error: %v", err)
 	}
@@ -47,7 +51,12 @@ func TestSendMetrics_HTTPError(t *testing.T) {
 	metrics := map[string]models.Metrics{
 		"foo": {MType: "counter", Delta: ptrInt64(1)},
 	}
-	_ = SendMetrics("localhost:8080", metrics, &logrus.Logger{})
+
+	cfg := config.AgentConfig{
+		Address: "localhost:8080",
+	}
+
+	_ = SendMetrics(&cfg, metrics, &logrus.Logger{})
 }
 
 func TestSendMetrics_Non200(t *testing.T) {
@@ -60,7 +69,12 @@ func TestSendMetrics_Non200(t *testing.T) {
 	metrics := map[string]models.Metrics{
 		"foo": {MType: "counter", Delta: ptrInt64(1)},
 	}
-	_ = SendMetrics("localhost:8080", metrics, &logrus.Logger{})
+
+	cfg := config.AgentConfig{
+		Address: "localhost:8080",
+	}
+
+	_ = SendMetrics(&cfg, metrics, &logrus.Logger{})
 }
 
 func TestSendMetricsJSON_Success(t *testing.T) {
@@ -73,7 +87,12 @@ func TestSendMetricsJSON_Success(t *testing.T) {
 	metrics := map[string]models.Metrics{
 		"foo": {MType: "counter", Delta: ptrInt64(1)},
 	}
-	err := SendMetricsJSON("localhost:8080", metrics, &logrus.Logger{})
+
+	cfg := config.AgentConfig{
+		Address: "localhost:8080",
+	}
+
+	err := SendMetricsJSON(&cfg, metrics, &logrus.Logger{})
 	if err != nil {
 		t.Errorf("unexpected error: %v", err)
 	}
