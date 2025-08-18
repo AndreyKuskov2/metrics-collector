@@ -24,6 +24,7 @@ type ServerConfig struct {
 	SecretKey       string `env:"KEY" json:"key"`
 	CryptoKey       string `env:"CRYPTO_KEY" json:"crypto_key"`
 	Config          string `env:"CONFIG"`
+	TrustedSubnet   string `env:"TRUSTED_SUBNET" json:"trusted_subnet"`
 }
 
 // NewConfig - функция для создания новой конфигурации сервера.
@@ -38,6 +39,7 @@ func NewConfig() (*ServerConfig, error) {
 	pflag.StringVarP(&serverConfig.SecretKey, "key", "k", "", "secret key")
 	pflag.StringVar(&serverConfig.CryptoKey, "crypto-key", "", "crypto key")
 	pflag.StringVarP(&serverConfig.Config, "config", "c", "", "config")
+	pflag.StringVarP(&serverConfig.TrustedSubnet, "trusted-subnet", "-t", "", "trusted subnet")
 
 	pflag.Parse()
 

@@ -16,6 +16,7 @@ func GetRouter(cfg *config.ServerConfig, logger *logrus.Logger, h *handlers.Metr
 
 	r.Use(middlewares.LoggerMiddleware(logger))
 	r.Use(middleware.Compress(5, "text/html", "application/json"))
+	r.Use(middlewares.CheckTrustedSubnetMiddleware(cfg))
 
 	r.Mount("/debug", middleware.Profiler())
 

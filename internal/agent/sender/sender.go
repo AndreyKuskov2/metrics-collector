@@ -32,9 +32,22 @@ func SendMetrics(cfg *config.AgentConfig, metrics map[string]models.Metrics, log
 				url = fmt.Sprintf("https://%s/update/%s/%s/%v", cfg.Address, metricData.MType, metricName, *metricData.Value)
 			}
 		}
+
+		ip, err := getPublicIP()
+		if err != nil {
+			ip, err = getLocalIP()
+			if err != nil {
+				logger.Printf("cannot get ip address!")
+				break
+			}
+			logger.Printf("get local ip address")
+		}
+		logger.Printf("get public ip address")
+
 		ro := grequests.RequestOptions{
 			Headers: map[string]string{
 				"Content-Type": "text/plain",
+				"X-Real-IP":    ip,
 			},
 			InsecureSkipVerify: true,
 		}
@@ -65,10 +78,22 @@ func SendMetricsJSON(cfg *config.AgentConfig, metrics map[string]models.Metrics,
 			continue
 		}
 
+		ip, err := getPublicIP()
+		if err != nil {
+			ip, err = getLocalIP()
+			if err != nil {
+				logger.Printf("cannot get ip address!")
+				break
+			}
+			logger.Printf("get local ip address")
+		}
+		logger.Printf("get public ip address")
+
 		ro := grequests.RequestOptions{
 			Headers: map[string]string{
 				"Content-Type":     "application/json",
 				"Content-Encoding": "gzip",
+				"X-Real-IP":        ip,
 			},
 			DisableCompression: false,
 			JSON:               jsonData,
@@ -129,6 +154,17 @@ func SendMetricsBatch(cfg *config.AgentConfig, metricsData models.AllMetrics, lo
 		return err
 	}
 
+	ip, err := getPublicIP()
+	if err != nil {
+		ip, err = getLocalIP()
+		if err != nil {
+			logger.Printf("cannot get ip address!")
+			return err
+		}
+		logger.Printf("get local ip address")
+	}
+	logger.Printf("get public ip address")
+
 	var response *http.Response
 	for trying := 0; trying <= cfg.MaxRetries; trying++ {
 		var hash string
@@ -140,6 +176,7 @@ func SendMetricsBatch(cfg *config.AgentConfig, metricsData models.AllMetrics, lo
 		req.Header.Set("Content-Type", "application/json")
 		req.Header.Set("Content-Encoding", "gzip")
 		req.Header.Set("HashSHA256", hash)
+		req.Header.Set("X-Real-IP", ip)
 
 		mTLSConfig := &tls.Config{
 			InsecureSkipVerify: true,
