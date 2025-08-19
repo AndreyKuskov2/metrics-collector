@@ -27,7 +27,7 @@ func (s *GRPCHandler) GetAllMetrics(_ context.Context, in *pb.GetAllMetricsReque
 	metrics, err := s.services.GetAllMetrics()
 	if err != nil {
 		s.logger.Infof("all metrics handler error: %s", err)
-		return nil, status.Errorf(codes.Internal, err.Error())
+		return nil, status.Errorf(codes.Internal, "all metrics handler error")
 	}
 
 	return &pb.GetAllMetricsResponse{
@@ -53,7 +53,7 @@ func (s *GRPCHandler) UpdateMetric(_ context.Context, in *pb.UpdateMetricRequest
 	metric, err := s.services.UpdateMetric(converter.GRPCMetricToHTTP(in.Metric))
 	if err != nil {
 		s.logger.Infof("cannot update metric: %v", err)
-		return nil, status.Errorf(codes.Internal, err.Error())
+		return nil, status.Errorf(codes.Internal, "cannot update metric")
 	}
 
 	if responseMetric, ok := s.services.GetMetric(metric.ID); ok {
@@ -67,7 +67,7 @@ func (s *GRPCHandler) UpdateMetric(_ context.Context, in *pb.UpdateMetricRequest
 func (s *GRPCHandler) UpdateBatchMetrics(_ context.Context, in *pb.UpdateBatchMetricsRequest) (*pb.UpdateBatchMetricsResponse, error) {
 	if err := s.services.UpdateBatchMetricsServ(converter.GRPCMetricsListToHTTPList(in.Metric), nil); err != nil {
 		s.logger.Infof("Failed to update metrics: %v", err)
-		return nil, status.Errorf(codes.Internal, err.Error())
+		return nil, status.Errorf(codes.Internal, "failed to update metrics")
 	}
 
 	return &pb.UpdateBatchMetricsResponse{
@@ -78,7 +78,7 @@ func (s *GRPCHandler) UpdateBatchMetrics(_ context.Context, in *pb.UpdateBatchMe
 func (s *GRPCHandler) Ping(_ context.Context, in *pb.PingRequest) (*pb.PingResponse, error) {
 	if err := s.services.Ping(); err != nil {
 		s.logger.Infof("ping error: %s", err)
-		return nil, status.Errorf(codes.Internal, err.Error())
+		return nil, status.Errorf(codes.Internal, "ping error")
 	}
 	return &pb.PingResponse{
 		Status: "pong",
