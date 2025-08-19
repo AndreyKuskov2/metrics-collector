@@ -3,6 +3,8 @@ package main
 import (
 	"context"
 	"fmt"
+	"log/slog"
+	"net"
 	"net/http"
 	"os"
 	"os/signal"
@@ -15,6 +17,11 @@ import (
 	"github.com/AndreyKuskov2/metrics-collector/internal/server/services"
 	"github.com/AndreyKuskov2/metrics-collector/internal/server/storage"
 	"github.com/AndreyKuskov2/metrics-collector/pkg/logger"
+	"github.com/grpc-ecosystem/go-grpc-middleware/v2/interceptors/logging"
+	"google.golang.org/grpc"
+	"google.golang.org/grpc/reflection"
+
+	pb "github.com/AndreyKuskov2/metrics-collector/proto/metrics"
 )
 
 var (
@@ -22,6 +29,12 @@ var (
 	buildDate    = "N/A"
 	buildCommit  = "N/A"
 )
+
+func interceptorLogger(l *slog.Logger) logging.Logger {
+	return logging.LoggerFunc(func(ctx context.Context, lvl logging.Level, msg string, fields ...any) {
+		l.Log(ctx, slog.Level(lvl), msg, fields...)
+	})
+}
 
 func main() {
 	fmt.Printf("Build version: %s\n", buildVersion)
@@ -40,6 +53,7 @@ func main() {
 	}
 	service := services.NewMetricService(stor, logger)
 	handler := handlers.NewMetricHandler(service, logger)
+	grpcHandler := handlers.NewGRPCHandler(service, logger)
 
 	metricRouter := router.GetRouter(cfg, logger, handler)
 
@@ -60,6 +74,31 @@ func main() {
 			if err := http.ListenAndServe(cfg.Address, metricRouter); err != nil {
 				logger.Fatalf("Failed to start server: %v", err)
 			}
+		}
+	}()
+
+	go func() {
+		listen, err := net.Listen("tcp", cfg.GRPCAddress)
+		if err != nil {
+			logger.Fatalf("Failed to listen connection: %v", err)
+		}
+
+		// Настройка базового логгирования
+		const component = "grpc-example"
+		grpclogger := slog.New(slog.NewTextHandler(os.Stderr, &slog.HandlerOptions{}))
+		rpcLogger := grpclogger.With("service", "gRPC/server", "component", component)
+
+		s := grpc.NewServer(grpc.ChainUnaryInterceptor(
+			logging.UnaryServerInterceptor(interceptorLogger(rpcLogger)),
+		))
+
+		pb.RegisterMetricsServiceServer(s, grpcHandler)
+
+		reflection.Register(s)
+
+		logger.Infof("Start GRPC server on %s", cfg.GRPCAddress)
+		if err := s.Serve(listen); err != nil {
+			logger.Fatalf("Failed to start gRPC server: %v", err)
 		}
 	}()
 

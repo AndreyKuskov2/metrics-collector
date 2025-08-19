@@ -3,18 +3,24 @@ package sender
 import (
 	"bytes"
 	"compress/gzip"
+	"context"
 	"crypto/tls"
 	"encoding/json"
 	"fmt"
 	"io"
+	"log"
 	"net/http"
 	"strings"
 	"time"
 
 	"github.com/AndreyKuskov2/metrics-collector/internal/agent/config"
 	"github.com/AndreyKuskov2/metrics-collector/internal/models"
+	"github.com/AndreyKuskov2/metrics-collector/pkg/converter"
+	pb "github.com/AndreyKuskov2/metrics-collector/proto/metrics"
 	"github.com/levigross/grequests"
 	"github.com/sirupsen/logrus"
+	"google.golang.org/grpc"
+	"google.golang.org/grpc/credentials/insecure"
 )
 
 // Отправка метрик
@@ -232,4 +238,58 @@ func sendWithRetry(cfg *config.AgentConfig, ro grequests.RequestOptions, url str
 		delay += 2 * time.Second
 	}
 	return fmt.Errorf("failed to send request after %d attempts", cfg.MaxRetries)
+}
+
+func createGRPCClient(serverAddress string) (pb.MetricsServiceClient, *grpc.ClientConn, error) {
+	conn, err := grpc.NewClient(serverAddress, grpc.WithTransportCredentials(insecure.NewCredentials()))
+	if err != nil {
+		return nil, nil, fmt.Errorf("failed to connect to server: %w", err)
+	}
+	client := pb.NewMetricsServiceClient(conn)
+	return client, conn, nil
+}
+
+func SendMetricsGRPC(cfg *config.AgentConfig, metrics map[string]models.Metrics, logger *logrus.Logger) {
+	client, conn, err := createGRPCClient(cfg.GRPCAddress)
+	if err != nil {
+		logger.Printf("Failed to create gRPC client: %v", err)
+		return
+	}
+	defer conn.Close()
+
+	ctx := context.Background()
+
+	for _, metricData := range metrics {
+		if _, err = client.UpdateMetric(ctx, &pb.UpdateMetricRequest{
+			Metric: converter.HTTPMetricToGRPC(&metricData),
+		}); err != nil {
+			logger.Printf("Failed to send metric: %v", err)
+		}
+	}
+}
+
+func SendMetricsBatchGRPC(cfg *config.AgentConfig, metricsData models.AllMetrics, logger *logrus.Logger) {
+	client, conn, err := createGRPCClient(cfg.GRPCAddress)
+	if err != nil {
+		logger.Printf("Failed to create gRPC client: %v", err)
+		return
+	}
+	defer conn.Close()
+
+	ctx := context.Background()
+
+	var requestBody []models.Metrics
+	for _, metric := range metricsData.RuntimeMetrics {
+		requestBody = append(requestBody, metric)
+	}
+
+	for _, metric := range metricsData.AdditionalMetrics {
+		requestBody = append(requestBody, metric)
+	}
+
+	if _, err = client.UpdateBatchMetrics(ctx, &pb.UpdateBatchMetricsRequest{
+		Metric: converter.HTTPMetricsListToGRPCList(requestBody),
+	}); err != nil {
+		log.Printf("Failed to send metrics: %v", err)
+	}
 }

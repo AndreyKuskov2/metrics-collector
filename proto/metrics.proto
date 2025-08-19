@@ -1,0 +1,63 @@
+syntax = "proto3";
+
+package metrics;
+
+option go_package = "./metrics";
+
+message Metrics {
+    string id = 1;
+    string type = 2;
+    int64 delta = 3;
+    double value = 4;
+}
+
+// Get one metric by name and type
+message GetMetricByNameAndTypeRequest {
+    string id = 1;
+    string type = 2;
+}
+
+message GetMetricByNameAndTypeResponse {
+    Metrics metric = 1;
+}
+
+// Get all metrics
+message GetAllMetricsRequest {}
+
+message GetAllMetricsResponse {
+    map<string, Metrics> metrics = 1;
+}
+
+// Update metric
+message UpdateMetricRequest {
+    Metrics metric = 1;
+}
+
+message UpdateMetricResponse {
+    Metrics metric = 1;
+}
+
+// Update batch metrics
+message UpdateBatchMetricsRequest {
+    repeated Metrics metric = 1;
+}
+
+message UpdateBatchMetricsResponse {
+    string status = 1;
+}
+
+// Ping gRPC method
+message PingRequest {}
+
+message PingResponse {
+    string status = 1;
+}
+
+// Services
+service MetricsService {
+    rpc GetAllMetrics(GetAllMetricsRequest) returns (GetAllMetricsResponse);
+    rpc GetMetricByNameAndType(GetMetricByNameAndTypeRequest) returns (GetMetricByNameAndTypeResponse);
+    rpc UpdateMetric(UpdateMetricRequest) returns (UpdateMetricResponse);
+    rpc UpdateBatchMetrics(UpdateBatchMetricsRequest) returns (UpdateBatchMetricsResponse);
+    rpc Ping(PingRequest) returns (PingResponse);
+}

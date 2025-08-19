@@ -103,9 +103,11 @@ func (s *MetricService) UpdateBatchMetricsServ(metrics []models.Metrics, r *http
 	}
 
 	// Валидация данных
-	for _, metric := range metrics {
-		if err := metric.Bind(r); err != nil {
-			return err
+	if r != nil {
+		for _, metric := range metrics {
+			if err := metric.Bind(r); err != nil {
+				return err
+			}
 		}
 	}
 

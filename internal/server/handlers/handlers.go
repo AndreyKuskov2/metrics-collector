@@ -95,6 +95,7 @@ func (mh *MetricHandler) UpdateMetricHandler(w http.ResponseWriter, r *http.Requ
 }
 
 // GetMetricHandler - обработчик для получения метрики.
+// Поиск по имени
 func (mh *MetricHandler) GetMetricHandler(w http.ResponseWriter, r *http.Request) {
 	metricName := chi.URLParam(r, "metric_name")
 	if metricName == "" {
@@ -193,6 +194,7 @@ func (mh *MetricHandler) UpdateMetricHandlerJSON(w http.ResponseWriter, r *http.
 }
 
 // GetMetricHandlerJSON - обработчик для получения метрики в формате JSON.
+// Поиск по имени метрики
 func (mh *MetricHandler) GetMetricHandlerJSON(w http.ResponseWriter, r *http.Request) {
 	var metric models.Metrics
 

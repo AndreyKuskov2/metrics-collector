@@ -23,6 +23,7 @@ type AgentConfig struct {
 	RateLimit      int    `env:"RATE_LIMIT"`
 	CryptoKey      string `env:"CRYPTO_KEY" json:"crypto_key"`
 	Config         string `env:"CONFIG"`
+	GRPCAddress    string `env:"GRPC_ADDRESS"`
 }
 
 // NewConfig - функция для создания новой конфигурации агента.
@@ -36,6 +37,7 @@ func NewConfig() (*AgentConfig, error) {
 	pflag.IntVarP(&agentConfig.RateLimit, "rateLimit", "l", 0, "rate limit")
 	pflag.StringVar(&agentConfig.CryptoKey, "crypto-key", "", "crypto key")
 	pflag.StringVarP(&agentConfig.Config, "config", "c", "", "config")
+	pflag.StringVarP(&agentConfig.GRPCAddress, "grpc-address", "g", "localhost:3200", "grpc address")
 
 	pflag.Parse()
 
