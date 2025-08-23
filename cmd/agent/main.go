@@ -63,6 +63,8 @@ func main() {
 			case <-tickerReport.C:
 				sender.SendMetrics(cfg, metrics, logger)
 				sender.SendMetricsJSON(cfg, metrics, logger)
+				sender.SendMetricsGRPC(cfg, metrics, logger)
+				sender.SendMetricsBatchGRPC(cfg, models.AllMetrics{RuntimeMetrics: metrics}, logger)
 				sender.SendMetricsBatch(cfg, models.AllMetrics{RuntimeMetrics: metrics}, logger)
 				logger.Info("Sent metrics")
 			case <-stop:
@@ -130,6 +132,7 @@ func main() {
 
 					maps.Copy(combinedMetrics.RuntimeMetrics, combinedMetrics.AdditionalMetrics)
 					sender.SendMetricsBatch(cfg, combinedMetrics, logger)
+					sender.SendMetricsBatchGRPC(cfg, combinedMetrics, logger)
 				case <-stop:
 					wg.Done()
 					return
@@ -149,6 +152,7 @@ func worker(metricsChan chan models.AllMetrics, wg *sync.WaitGroup, config *conf
 		case metrics := <-metricsChan:
 			maps.Copy(metrics.RuntimeMetrics, metrics.AdditionalMetrics)
 			sender.SendMetricsBatch(config, metrics, logger)
+			sender.SendMetricsBatchGRPC(config, metrics, logger)
 		case <-stop:
 			wg.Done()
 		}

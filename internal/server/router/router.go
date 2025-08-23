@@ -16,18 +16,19 @@ func GetRouter(cfg *config.ServerConfig, logger *logrus.Logger, h *handlers.Metr
 
 	r.Use(middlewares.LoggerMiddleware(logger))
 	r.Use(middleware.Compress(5, "text/html", "application/json"))
+	r.Use(middlewares.CheckTrustedSubnetMiddleware(cfg))
 
 	r.Mount("/debug", middleware.Profiler())
 
 	r.Post("/update/{metric_type}/{metric_name}/{metric_value}", h.UpdateMetricHandler)
 	r.With(middlewares.GzipMiddleware).Post("/update/", h.UpdateMetricHandlerJSON)
 
-	r.Get("/value/{metric_type}/{metric_name}", h.GetMetricHandler)
-	r.With(middlewares.GzipMiddleware).Post("/value/", h.GetMetricHandlerJSON)
+	r.Get("/value/{metric_type}/{metric_name}", h.GetMetricHandler) //
+	r.With(middlewares.GzipMiddleware).Post("/value/", h.GetMetricHandlerJSON) //
 
-	r.With(middlewares.GzipMiddleware).Get("/", h.GetMetricsHandler)
+	r.With(middlewares.GzipMiddleware).Get("/", h.GetMetricsHandler) //
 
-	r.Get("/ping", h.Ping)
+	r.Get("/ping", h.Ping) //
 
 	r.With(middlewares.GzipMiddleware).With(middlewares.CheckHashMiddleware(cfg)).Post("/updates/", h.UpdateManyMetricsHandler)
 
